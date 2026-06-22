@@ -4,6 +4,8 @@ import org.lwjgl.glfw.GLFW;
 
 import com.github.paweljanicki.engine.Engine;
 import com.github.paweljanicki.engine.IGame;
+import com.github.paweljanicki.engine.assets.textures.Texture;
+import com.github.paweljanicki.engine.assets.textures.TextureParameters;
 
 public class Game implements IGame {
 	
@@ -15,6 +17,12 @@ public class Game implements IGame {
 	@Override
 	public void init(Engine engine) {
 		this.engine = engine;
+		
+		Texture albedoTexture = engine.getAssetManager().loadTexture("/models/DamagedHelmet/textures/Default_albedo.jpg", TextureParameters.DEFAULT_SRGB);
+		Texture metalRoughnessTexture = engine.getAssetManager().loadTexture("/models/DamagedHelmet/textures/Default_metalRoughness.jpg", TextureParameters.DEFAULT_RGB);
+		
+		System.out.println(albedoTexture.getId());
+		System.out.println(metalRoughnessTexture.getId());
 	}
 	
 	@Override

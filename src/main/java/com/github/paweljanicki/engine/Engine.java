@@ -1,7 +1,9 @@
 package com.github.paweljanicki.engine;
 
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL;
 
+import com.github.paweljanicki.engine.assets.AssetManager;
 import com.github.paweljanicki.engine.platform.KeyHandler;
 import com.github.paweljanicki.engine.platform.MouseHandler;
 import com.github.paweljanicki.engine.platform.Window;
@@ -13,6 +15,8 @@ public class Engine {
 	private Window window;
 	private KeyHandler keyHandler;
 	private MouseHandler mouseHandler;
+	
+	private AssetManager assetManager;
 	
 	public void createWindow(String title, int width, int height) {
 		keyHandler = new KeyHandler();
@@ -26,6 +30,10 @@ public class Engine {
 	
 	public void init(IGame game) {
 		this.game = game;
+		
+		GL.createCapabilities();
+		
+		assetManager = new AssetManager();
 		
 		game.init(this);
 	}
@@ -54,6 +62,7 @@ public class Engine {
 	
 	private void cleanUp() {
 		window.cleanUp();
+		assetManager.cleanUp();
 	}
 	
 	public void close() {
@@ -70,6 +79,10 @@ public class Engine {
 	
 	public MouseHandler getMouseHandler() {
 		return mouseHandler;
+	}
+	
+	public AssetManager getAssetManager() {
+		return assetManager;
 	}
 	
 }
