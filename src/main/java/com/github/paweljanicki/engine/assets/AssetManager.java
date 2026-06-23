@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL30;
 import com.github.paweljanicki.engine.assets.models.Model;
 import com.github.paweljanicki.engine.assets.models.ModelLoader;
 import com.github.paweljanicki.engine.assets.models.ModelPart;
+import com.github.paweljanicki.engine.assets.shaders.Shader;
 import com.github.paweljanicki.engine.assets.textures.Texture;
 import com.github.paweljanicki.engine.assets.textures.TextureLoader;
 import com.github.paweljanicki.engine.assets.textures.TextureParameters;
@@ -18,6 +19,7 @@ public class AssetManager {
 	
 	private Map<String, Texture> textures = new HashMap<>();
 	private Map<String, Model> models = new HashMap<>();
+	private Map<String, Shader> shaders = new HashMap<>();
 	
 	public Texture loadTexture(String filePath, TextureParameters textureParameters) {
 		Texture texture = textures.get(filePath);
@@ -56,7 +58,6 @@ public class AssetManager {
 			return;
 		
 		cleanUpModel(model);
-		
 		models.remove(filePath);
 	}
 	
@@ -70,6 +71,28 @@ public class AssetManager {
 		}
 	}
 	
+	public Shader loadShader(String vertexShaderFilePath, String fragmentShaderFilePath) {
+		String key = vertexShaderFilePath + "&" + fragmentShaderFilePath;
+		Shader shader = shaders.get(key);
+		if (shader != null)
+			return shader;
+		
+		shader = new Shader(vertexShaderFilePath, fragmentShaderFilePath);
+		shaders.put(key, shader);
+		
+		return shader;
+	}
+	
+	public void unloadShader(String vertexShaderFilePath, String fragmentShaderFilePath) {
+		String key = vertexShaderFilePath + "&" + fragmentShaderFilePath;
+		Shader shader = shaders.get(key);
+		if (shader == null)
+			return;
+		
+		shader.cleanUp();
+		shaders.remove(key);
+	}
+	
 	public void cleanUp() {
 		for (Texture texture : textures.values()) {
 			GL11.glDeleteTextures(texture.getId());
@@ -79,8 +102,13 @@ public class AssetManager {
 			cleanUpModel(model);
 		}
 		
+		for (Shader shader : shaders.values()) {
+			shader.cleanUp();
+		}
+		
 		textures.clear();
 		models.clear();
+		shaders.clear();
 	}
 	
 }
