@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFW;
 import com.github.paweljanicki.engine.Engine;
 import com.github.paweljanicki.engine.IGame;
 import com.github.paweljanicki.engine.assets.models.Model;
+import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
 import com.github.paweljanicki.engine.scene.Entity;
 import com.github.paweljanicki.engine.scene.Scene;
@@ -15,6 +16,7 @@ public class Game implements IGame {
 	private Engine engine;
 	
 	private Scene scene;
+	private Camera camera;
 	
 	private float fpsTimer;
 	private int framesCount;
@@ -30,6 +32,8 @@ public class Game implements IGame {
 		scene = new Scene();
 		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
 		scene.addEntity(new Entity(damagedHelmet));
+		
+		camera = new Camera();
 	}
 	
 	@Override
@@ -58,7 +62,7 @@ public class Game implements IGame {
 	
 	@Override
 	public void render() {
-		
+		engine.getRenderer().render(scene, camera);
 	}
 	
 }

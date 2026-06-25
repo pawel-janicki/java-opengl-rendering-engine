@@ -7,6 +7,7 @@ import com.github.paweljanicki.engine.assets.AssetManager;
 import com.github.paweljanicki.engine.platform.KeyHandler;
 import com.github.paweljanicki.engine.platform.MouseHandler;
 import com.github.paweljanicki.engine.platform.Window;
+import com.github.paweljanicki.engine.renderer.Renderer;
 
 public class Engine {
 	
@@ -17,6 +18,8 @@ public class Engine {
 	private MouseHandler mouseHandler;
 	
 	private AssetManager assetManager;
+	
+	private Renderer renderer;
 	
 	public void createWindow(String title, int width, int height) {
 		keyHandler = new KeyHandler();
@@ -35,7 +38,10 @@ public class Engine {
 		
 		assetManager = new AssetManager();
 		
+		renderer = new Renderer(window);
+		
 		game.init(this);
+		renderer.init(assetManager);
 	}
 	
 	public void run() {
@@ -63,6 +69,7 @@ public class Engine {
 	private void cleanUp() {
 		window.cleanUp();
 		assetManager.cleanUp();
+		renderer.cleanUp();
 	}
 	
 	public void close() {
@@ -83,6 +90,10 @@ public class Engine {
 	
 	public AssetManager getAssetManager() {
 		return assetManager;
+	}
+	
+	public Renderer getRenderer() {
+		return renderer;
 	}
 	
 }
