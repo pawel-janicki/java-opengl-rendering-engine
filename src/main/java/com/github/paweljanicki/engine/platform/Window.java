@@ -1,5 +1,7 @@
 package com.github.paweljanicki.engine.platform;
 
+import java.util.function.BiConsumer;
+
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -59,6 +61,14 @@ public class Window {
 		
 		GLFW.glfwMakeContextCurrent(window);
 		GLFW.glfwShowWindow(window);
+	}
+	
+	public void registerWindowSizeCallback(BiConsumer<Integer, Integer> consumer) {
+		GLFW.glfwSetWindowSizeCallback(window, (window, width, height) -> {
+			this.width = width;
+			this.height = height;
+			consumer.accept(width, height);
+		});
 	}
 	
 	public void registerKeyCallback(KeyHandler keyHandler) {

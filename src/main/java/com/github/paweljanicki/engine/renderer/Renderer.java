@@ -11,11 +11,13 @@ public class Renderer {
 	
 	private final RenderPipeline pipeline;
 	private final RenderContext context;
+	private final RenderHelpers helpers;
 	
 	public Renderer(Window window) {
 		this.window = window;
 		this.pipeline = new RenderPipeline();
 		this.context = new RenderContext();
+		this.helpers = new RenderHelpers();
 	}
 	
 	public void init(AssetManager assetManager) {
@@ -29,7 +31,7 @@ public class Renderer {
 		context.setScene(scene);
 		context.setCamera(camera);
 		
-		pipeline.render(context);
+		pipeline.render(context, helpers);
 	}
 	
 	public void onResize(int width, int height) {

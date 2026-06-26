@@ -6,6 +6,9 @@ import org.lwjgl.glfw.GLFW;
 import com.github.paweljanicki.engine.Engine;
 import com.github.paweljanicki.engine.IGame;
 import com.github.paweljanicki.engine.assets.models.Model;
+import com.github.paweljanicki.engine.renderer.passes.DebugPass;
+import com.github.paweljanicki.engine.renderer.passes.DebugPass.DebugMode;
+import com.github.paweljanicki.engine.renderer.passes.GeometryPass;
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
 import com.github.paweljanicki.engine.scene.Entity;
@@ -14,6 +17,8 @@ import com.github.paweljanicki.engine.scene.Scene;
 public class Game implements IGame {
 	
 	private Engine engine;
+	
+	private DebugPass debugPass;
 	
 	private Scene scene;
 	private Camera camera;
@@ -25,15 +30,19 @@ public class Game implements IGame {
 	public void init(Engine engine) {
 		this.engine = engine;
 		
+		debugPass = new DebugPass();
+		debugPass.setEnabled(true);
+		
+		engine.getRenderer().getPipeline().addPass(new GeometryPass());
+		engine.getRenderer().getPipeline().addPass(debugPass);
+		
 		Model damagedHelmet = engine.getAssetManager().loadModel("/models/DamagedHelmet/DamagedHelmet.gltf", "/models/DamagedHelmet/textures");
-		System.out.println(damagedHelmet.getModelParts().get(0).getMaterial().getAlbedoMap().getId());
-		System.out.println(damagedHelmet.getModelParts().get(0).getMaterial().getRoughnessMap().getId());
 		
 		scene = new Scene();
 		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
 		scene.addEntity(new Entity(damagedHelmet));
 		
-		camera = new Camera();
+		camera = new Camera(new Vector3f(0, 0, 2));
 	}
 	
 	@Override
@@ -45,6 +54,18 @@ public class Game implements IGame {
 			engine.getWindow().toggleFullScreen();
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_E)) {
 			engine.getWindow().toggleMouseLock();
+		}
+		
+		if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_1)) {
+			debugPass.setMode(DebugMode.DEPTH);
+		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_2)) {
+			debugPass.setMode(DebugMode.NORMALS);
+		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_3)) {
+			debugPass.setMode(DebugMode.ALBEDO);
+		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_4)) {
+			debugPass.setMode(DebugMode.ARM);
+		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_5)) {
+			debugPass.setMode(DebugMode.EMISSIVE);
 		}
 		
 		fpsTimer += deltaTime;

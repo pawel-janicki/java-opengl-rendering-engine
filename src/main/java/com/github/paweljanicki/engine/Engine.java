@@ -27,6 +27,7 @@ public class Engine {
 		
 		window = new Window(title, width, height);
 		window.init();
+		window.registerWindowSizeCallback(this::onResize);
 		window.registerKeyCallback(keyHandler);
 		window.registerMouseCallback(mouseHandler);
 	}
@@ -64,6 +65,10 @@ public class Engine {
 		}
 		
 		cleanUp();
+	}
+	
+	private void onResize(int width, int height) {
+		renderer.onResize(width, height);
 	}
 	
 	private void cleanUp() {

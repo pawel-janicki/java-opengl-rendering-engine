@@ -24,9 +24,9 @@ public class RenderPipeline {
 		}
 	}
 	
-	public void render(RenderContext context) {
+	public void render(RenderContext context, RenderHelpers helpers) {
 		for (IRenderPass pass : renderPasses) {
-			pass.render(context, targets);
+			pass.render(context, targets, helpers);
 		}
 	}
 	
