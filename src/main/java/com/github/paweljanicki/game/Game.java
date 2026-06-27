@@ -21,7 +21,9 @@ public class Game implements IGame {
 	private DebugPass debugPass;
 	
 	private Scene scene;
+	
 	private Camera camera;
+	private CameraController cameraController;
 	
 	private float fpsTimer;
 	private int framesCount;
@@ -43,6 +45,7 @@ public class Game implements IGame {
 		scene.addEntity(new Entity(damagedHelmet));
 		
 		camera = new Camera(new Vector3f(0, 0, 2));
+		cameraController = new CameraController(engine.getKeyHandler(), engine.getMouseHandler(), camera);
 	}
 	
 	@Override
@@ -67,6 +70,9 @@ public class Game implements IGame {
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_5)) {
 			debugPass.setMode(DebugMode.EMISSIVE);
 		}
+		
+		if (engine.getWindow().isMouseLocked())
+			cameraController.update(deltaTime);
 		
 		fpsTimer += deltaTime;
 		framesCount++;

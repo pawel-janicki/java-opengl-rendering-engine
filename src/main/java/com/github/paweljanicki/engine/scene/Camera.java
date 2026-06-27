@@ -67,12 +67,22 @@ public class Camera {
 		this.viewDirty = true;
 	}
 	
+	public void setPosition(float x, float y, float z) {
+		this.position.set(x, y, z);
+		this.viewDirty = true;
+	}
+	
 	public Vector3fc getRotation() {
 		return rotation;
 	}
 	
 	public void setRotation(Vector3f rotation) {
 		this.rotation.set(rotation);
+		this.viewDirty = true;
+	}
+	
+	public void setRotation(float x, float y, float z) {
+		this.rotation.set(x, y, z);
 		this.viewDirty = true;
 	}
 	
