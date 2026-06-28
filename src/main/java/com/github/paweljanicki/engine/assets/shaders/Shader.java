@@ -9,12 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joml.Matrix4fc;
-import org.joml.Vector2f;
-import org.joml.Vector2i;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
-import org.joml.Vector4f;
-import org.joml.Vector4i;
+import org.joml.Vector2fc;
+import org.joml.Vector2ic;
+import org.joml.Vector3fc;
+import org.joml.Vector3ic;
+import org.joml.Vector4fc;
+import org.joml.Vector4ic;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -99,28 +99,28 @@ public class Shader {
 		GL20.glUniform1f(getUniformLocation(name), value);
 	}
 	
-	public void setVector2i(String name, Vector2i vector) {
-		GL20.glUniform2i(getUniformLocation(name), vector.x, vector.y);
+	public void setVector2i(String name, Vector2ic vector) {
+		GL20.glUniform2i(getUniformLocation(name), vector.x(), vector.y());
 	}
 	
-	public void setVector3i(String name, Vector3i vector) {
-		GL20.glUniform3i(getUniformLocation(name), vector.x, vector.y, vector.z);
+	public void setVector3i(String name, Vector3ic vector) {
+		GL20.glUniform3i(getUniformLocation(name), vector.x(), vector.y(), vector.z());
 	}
 	
-	public void setVector4i(String name, Vector4i vector) {
-		GL20.glUniform4i(getUniformLocation(name), vector.x, vector.y, vector.z, vector.w);
+	public void setVector4i(String name, Vector4ic vector) {
+		GL20.glUniform4i(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
 	}
 	
-	public void setVector2f(String name, Vector2f vector) {
-		GL20.glUniform2f(getUniformLocation(name), vector.x, vector.y);
+	public void setVector2f(String name, Vector2fc vector) {
+		GL20.glUniform2f(getUniformLocation(name), vector.x(), vector.y());
 	}
 	
-	public void setVector3f(String name, Vector3f vector) {
-		GL20.glUniform3f(getUniformLocation(name), vector.x, vector.y, vector.z);
+	public void setVector3f(String name, Vector3fc vector) {
+		GL20.glUniform3f(getUniformLocation(name), vector.x(), vector.y(), vector.z());
 	}
 	
-	public void setVector4f(String name, Vector4f vector) {
-		GL20.glUniform4f(getUniformLocation(name), vector.x, vector.y, vector.z, vector.w);
+	public void setVector4f(String name, Vector4fc vector) {
+		GL20.glUniform4f(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
 	}
 	
 	public void setMatrix4f(String name, Matrix4fc matrix) {

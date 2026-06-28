@@ -9,6 +9,7 @@ import com.github.paweljanicki.engine.assets.models.Model;
 import com.github.paweljanicki.engine.renderer.passes.DebugPass;
 import com.github.paweljanicki.engine.renderer.passes.DebugPass.DebugMode;
 import com.github.paweljanicki.engine.renderer.passes.GeometryPass;
+import com.github.paweljanicki.engine.renderer.passes.LightingPass;
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
 import com.github.paweljanicki.engine.scene.Entity;
@@ -33,9 +34,10 @@ public class Game implements IGame {
 		this.engine = engine;
 		
 		debugPass = new DebugPass();
-		debugPass.setEnabled(true);
 		
 		engine.getRenderer().getPipeline().addPass(new GeometryPass());
+		engine.getRenderer().getPipeline().addPass(new LightingPass());
+		
 		engine.getRenderer().getPipeline().addPass(debugPass);
 		
 		Model damagedHelmet = engine.getAssetManager().loadModel("/models/DamagedHelmet/DamagedHelmet.gltf", "/models/DamagedHelmet/textures");
@@ -61,14 +63,22 @@ public class Game implements IGame {
 		
 		if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_1)) {
 			debugPass.setMode(DebugMode.DEPTH);
+			debugPass.setEnabled(false);
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_2)) {
-			debugPass.setMode(DebugMode.NORMALS);
+			debugPass.setMode(DebugMode.DEPTH);
+			debugPass.setEnabled(true);
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_3)) {
-			debugPass.setMode(DebugMode.ALBEDO);
+			debugPass.setMode(DebugMode.NORMALS);
+			debugPass.setEnabled(true);
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_4)) {
-			debugPass.setMode(DebugMode.ARM);
+			debugPass.setMode(DebugMode.ALBEDO);
+			debugPass.setEnabled(true);
 		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_5)) {
+			debugPass.setMode(DebugMode.ARM);
+			debugPass.setEnabled(true);
+		} else if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_6)) {
 			debugPass.setMode(DebugMode.EMISSIVE);
+			debugPass.setEnabled(true);
 		}
 		
 		if (engine.getWindow().isMouseLocked())

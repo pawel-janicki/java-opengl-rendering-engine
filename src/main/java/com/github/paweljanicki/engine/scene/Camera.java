@@ -11,6 +11,7 @@ public class Camera {
 	private final Vector3f rotation;
 	
 	private final Matrix4f viewMatrix;
+	private final Matrix4f inverseViewMatrix;
 	private boolean viewDirty;
 	
 	private float fov = 90;
@@ -21,6 +22,7 @@ public class Camera {
 	private int height;
 	
 	private final Matrix4f projectionMatrix;
+	private final Matrix4f inverseProjectionMatrix;
 	private boolean projectionDirty;
 	
 	public Camera() {
@@ -34,10 +36,12 @@ public class Camera {
 	public Camera(Vector3f position, Vector3f rotation) {
 		this.position = new Vector3f(position);
 		this.rotation = new Vector3f(rotation);
-		this.projectionMatrix = new Matrix4f();
-		this.projectionDirty = true;
 		this.viewMatrix = new Matrix4f();
+		this.inverseViewMatrix = new Matrix4f();
 		this.viewDirty = true;
+		this.projectionMatrix = new Matrix4f();
+		this.inverseProjectionMatrix = new Matrix4f();
+		this.projectionDirty = true;
 	}
 	
 	public void translate(Vector3f vector) {
@@ -121,10 +125,19 @@ public class Camera {
 			float aspectRatio = (float) width / height;
 			projectionMatrix.setPerspective((float) Math.toRadians(fov), aspectRatio, nearPlane, farPlane);
 			
+			inverseProjectionMatrix.set(projectionMatrix).invert();
+			
 			projectionDirty = false;
 		}
 		
 		return projectionMatrix;
+	}
+	
+	public Matrix4f getInverseProjectionMatrix(int width, int height) {
+		if (projectionDirty || this.width != width || this.height != height)
+			getProjectionMatrix(width, height);
+		
+		return inverseProjectionMatrix;
 	}
 	
 	public Matrix4fc getViewMatrix() {
@@ -134,10 +147,20 @@ public class Camera {
 			viewMatrix.rotateY((float) Math.toRadians(rotation.y));
 			viewMatrix.rotateZ((float) Math.toRadians(rotation.z));
 			viewMatrix.translate(-position.x, -position.y, -position.z);
+			
+			inverseViewMatrix.set(viewMatrix).invert();
+			
 			viewDirty = false;
 		}
 		
 		return viewMatrix;
+	}
+	
+	public Matrix4f getInverseViewMatrix() {
+		if (viewDirty)
+			getViewMatrix();
+		
+		return inverseViewMatrix;
 	}
 	
 }
