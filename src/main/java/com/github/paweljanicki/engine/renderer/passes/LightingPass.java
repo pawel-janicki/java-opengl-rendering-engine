@@ -1,10 +1,13 @@
 package com.github.paweljanicki.engine.renderer.passes;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 
 import com.github.paweljanicki.engine.assets.AssetManager;
 import com.github.paweljanicki.engine.assets.shaders.Shader;
+import com.github.paweljanicki.engine.assets.textures.TextureParameters;
 import com.github.paweljanicki.engine.renderer.FrameBuffer;
 import com.github.paweljanicki.engine.renderer.IRenderPass;
 import com.github.paweljanicki.engine.renderer.RenderContext;
@@ -15,10 +18,17 @@ import com.github.paweljanicki.engine.scene.Scene;
 
 public class LightingPass implements IRenderPass {
 	
+	private FrameBuffer lightingFbo;
 	private Shader shader;
 	
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
+		lightingFbo = new FrameBuffer(width, height);
+		lightingFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
+		lightingFbo.checkComplete();
+		
+		targets.add("lighting", lightingFbo);
+		
 		shader = assetManager.loadShader("/shaders/quadVS.glsl", "/shaders/lightingFS.glsl");
 		shader.bind();
 		shader.setInt("gDepth", 0);
@@ -35,10 +45,12 @@ public class LightingPass implements IRenderPass {
 		Camera camera = context.getCamera();
 		FrameBuffer gBuffer = targets.get("gBuffer");
 		
-		GL11.glViewport(0, 0, context.getWidth(), context.getHeight());
+		lightingFbo.bind();
 		
 		GL11.glClearColor(0, 0, 0, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		
+		GL11.glDisable(GL11.GL_DEPTH_TEST);
 		
 		shader.bind();
 		shader.setVector3f("cameraPosition", camera.getPosition());
@@ -68,6 +80,9 @@ public class LightingPass implements IRenderPass {
 		helpers.getQuadRenderer().render();
 		
 		shader.unbind();
+		lightingFbo.unbind();
+		
+		targets.setCurrentRenderTarget(lightingFbo);
 	}
 
 }

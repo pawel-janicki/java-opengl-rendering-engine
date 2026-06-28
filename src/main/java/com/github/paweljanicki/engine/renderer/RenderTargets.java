@@ -7,6 +7,8 @@ public class RenderTargets {
 	
 	private final Map<String, FrameBuffer> frameBuffers = new HashMap<>();
 	
+	private FrameBuffer currentRenderTarget;
+	
 	public void add(String name, FrameBuffer fbo) {
 		if (frameBuffers.containsKey(name))
 			throw new RuntimeException("[ERROR] >> Failed to add frame buffer to render targets! Frame buffer '" + name + "' already exists.");
@@ -43,6 +45,14 @@ public class RenderTargets {
 		}
 		
 		frameBuffers.clear();
+	}
+	
+	public FrameBuffer getCurrentRenderTarget() {
+		return currentRenderTarget;
+	}
+	
+	public void setCurrentRenderTarget(FrameBuffer currentRenderTarget) {
+		this.currentRenderTarget = currentRenderTarget;
 	}
 	
 }
