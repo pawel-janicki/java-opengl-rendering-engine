@@ -1,6 +1,7 @@
 package com.github.paweljanicki.engine.assets.textures;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL30;
 
 public class TextureParameters {
@@ -10,6 +11,8 @@ public class TextureParameters {
 	
 	public static final TextureParameters DEFAULT_RGBA = new TextureParameters(GL11.GL_UNSIGNED_BYTE, GL11.GL_RGBA, GL11.GL_RGBA, GL11.GL_LINEAR_MIPMAP_LINEAR, GL11.GL_LINEAR, GL11.GL_REPEAT, GL11.GL_REPEAT, true, true);
 	public static final TextureParameters DEFAULT_SRGBA = new TextureParameters(GL11.GL_UNSIGNED_BYTE, GL11.GL_RGBA, GL30.GL_SRGB8_ALPHA8, GL11.GL_LINEAR_MIPMAP_LINEAR, GL11.GL_LINEAR, GL11.GL_REPEAT, GL11.GL_REPEAT, true, true);
+	
+	public static final TextureParameters DEFAULT_HDR = new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGB, GL30.GL_RGB16F, GL11.GL_LINEAR, GL11.GL_LINEAR, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false);
 	
 	public final int type;
 	public final int format;

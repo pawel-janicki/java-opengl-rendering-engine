@@ -125,6 +125,10 @@ public class FrameBuffer {
 		GL30.glDeleteFramebuffers(id);
 	}
 	
+	public int getId() {
+		return id;
+	}
+	
 	public int getWidth() {
 		return width;
 	}

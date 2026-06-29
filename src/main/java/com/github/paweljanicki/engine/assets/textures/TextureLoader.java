@@ -7,6 +7,7 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
@@ -72,6 +73,24 @@ public class TextureLoader {
 		}
 		
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+		
+		return new Texture(id);
+	}
+	
+	public static Texture generateCubemap(int size, TextureParameters textureParameters) {
+		int id = GL11.glGenTextures();
+		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, id);
+		
+		ByteBuffer buffer = null;
+		for (int i = 0; i < 6; i++) {
+			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, textureParameters.internalFormat, size, size, 0, textureParameters.format, textureParameters.type, buffer);
+		}
+		
+		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MIN_FILTER, textureParameters.minFilter);
+		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MAG_FILTER, textureParameters.magFilter);
+		
+		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_WRAP_S, textureParameters.wrapS);
+		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_WRAP_T, textureParameters.wrapT);
 		
 		return new Texture(id);
 	}

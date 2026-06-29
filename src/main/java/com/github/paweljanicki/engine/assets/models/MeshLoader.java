@@ -11,6 +11,17 @@ import org.lwjgl.opengl.GL30;
 
 public class MeshLoader {
 	
+	public static Mesh loadCube(float[] positions) {
+		int vaoId = createVAO();
+		storeDataInAttributeList(0, 3, positions);
+		
+		GL20.glEnableVertexAttribArray(0);
+		
+		GL30.glBindVertexArray(0);
+		
+		return new Mesh(vaoId, positions.length);
+	}
+	
 	public static Mesh load2D(float[] positions, float[] textureCoords, int[] indices) {
 		int vaoId = createVAO();
 		int ebo = storeIndicesBuffer(indices);

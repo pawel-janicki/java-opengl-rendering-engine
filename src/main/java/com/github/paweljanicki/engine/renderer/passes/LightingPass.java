@@ -25,6 +25,9 @@ public class LightingPass implements IRenderPass {
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
 		lightingFbo = new FrameBuffer(width, height);
 		lightingFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
+		lightingFbo.bind();
+		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL11.GL_TEXTURE_2D, targets.get("gBuffer").getDepthTexture().getId(), 0);
+		lightingFbo.unbind();
 		lightingFbo.checkComplete();
 		
 		targets.add("lighting", lightingFbo);
@@ -48,9 +51,10 @@ public class LightingPass implements IRenderPass {
 		lightingFbo.bind();
 		
 		GL11.glClearColor(0, 0, 0, 1);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		GL11.glDepthMask(false);
 		
 		shader.bind();
 		shader.setVector3f("cameraPosition", camera.getPosition());
@@ -81,6 +85,8 @@ public class LightingPass implements IRenderPass {
 		
 		shader.unbind();
 		lightingFbo.unbind();
+		
+		GL11.glDepthMask(true);
 		
 		targets.setCurrentRenderTarget(lightingFbo);
 	}

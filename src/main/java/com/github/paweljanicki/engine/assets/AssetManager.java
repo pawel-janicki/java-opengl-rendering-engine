@@ -7,6 +7,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
 
+import com.github.paweljanicki.engine.assets.environments.Environment;
+import com.github.paweljanicki.engine.assets.environments.EnvironmentLoader;
 import com.github.paweljanicki.engine.assets.models.Model;
 import com.github.paweljanicki.engine.assets.models.ModelLoader;
 import com.github.paweljanicki.engine.assets.models.ModelPart;
@@ -20,6 +22,9 @@ public class AssetManager {
 	private Map<String, Texture> textures = new HashMap<>();
 	private Map<String, Model> models = new HashMap<>();
 	private Map<String, Shader> shaders = new HashMap<>();
+	private Map<String, Environment> environments = new HashMap<>();
+	
+	private EnvironmentLoader environmentLoader = new EnvironmentLoader(this);
 	
 	public Texture loadTexture(String filePath, TextureParameters textureParameters) {
 		Texture texture = textures.get(filePath);
@@ -93,7 +98,29 @@ public class AssetManager {
 		shaders.remove(key);
 	}
 	
+	public Environment loadEnvironment(String filePath) {
+		Environment environment = environments.get(filePath);
+		if (environment != null)
+			return environment;
+		
+		environment = environmentLoader.load(filePath);
+		environments.put(filePath, environment);
+		
+		return environment;
+	}
+	
+	public void unloadEnvironment(String filePath) {
+		Environment environment = environments.get(filePath);
+		if (environment == null)
+			return;
+		
+		GL11.glDeleteTextures(environment.getEnvironmentMap().getId());
+		environments.remove(filePath);
+	}
+	
 	public void cleanUp() {
+		environmentLoader.cleanUp();
+		
 		for (Texture texture : textures.values()) {
 			GL11.glDeleteTextures(texture.getId());
 		}
@@ -106,9 +133,14 @@ public class AssetManager {
 			shader.cleanUp();
 		}
 		
+		for (Environment environment : environments.values()) {
+			GL11.glDeleteTextures(environment.getEnvironmentMap().getId());
+		}
+		
 		textures.clear();
 		models.clear();
 		shaders.clear();
+		environments.clear();
 	}
 	
 }

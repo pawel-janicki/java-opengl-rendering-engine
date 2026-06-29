@@ -12,6 +12,7 @@ import com.github.paweljanicki.engine.renderer.passes.DebugPass.DebugMode;
 import com.github.paweljanicki.engine.renderer.passes.GeometryPass;
 import com.github.paweljanicki.engine.renderer.passes.LightingPass;
 import com.github.paweljanicki.engine.renderer.passes.OutputPass;
+import com.github.paweljanicki.engine.renderer.passes.SkyboxPass;
 import com.github.paweljanicki.engine.renderer.passes.TonemapPass;
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
@@ -40,6 +41,7 @@ public class Game implements IGame {
 		
 		engine.getRenderer().getPipeline().addPass(new GeometryPass());
 		engine.getRenderer().getPipeline().addPass(new LightingPass());
+		engine.getRenderer().getPipeline().addPass(new SkyboxPass());
 		
 		engine.getRenderer().getPipeline().addPass(new TonemapPass());
 		engine.getRenderer().getPipeline().addPass(new GammaCorrectionPass());
@@ -52,6 +54,7 @@ public class Game implements IGame {
 		scene = new Scene();
 		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
 		scene.addEntity(new Entity(damagedHelmet));
+		scene.setEnvironment(engine.getAssetManager().loadEnvironment("/hdr/kloppenheim_06_puresky_4k.hdr"));
 		
 		camera = new Camera(new Vector3f(0, 0, 2));
 		cameraController = new CameraController(engine.getKeyHandler(), engine.getMouseHandler(), camera);
