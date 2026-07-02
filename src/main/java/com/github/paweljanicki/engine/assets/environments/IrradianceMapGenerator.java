@@ -15,9 +15,9 @@ import com.github.paweljanicki.engine.assets.textures.TextureParameters;
 import com.github.paweljanicki.engine.renderer.CubeRenderer;
 import com.github.paweljanicki.engine.renderer.FrameBuffer;
 
-public class EquirectangularToCubemapGenerator {
+public class IrradianceMapGenerator {
 	
-	private static final int SIZE = 1024;
+	private static final int SIZE = 32;
 	
 	private static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), 1, 0.1f, 10);
 	private static final Matrix4f VIEW_MATRICES[] = {
@@ -32,17 +32,17 @@ public class EquirectangularToCubemapGenerator {
 	private FrameBuffer fbo;
 	private Shader shader;
 	
-	public EquirectangularToCubemapGenerator(AssetManager assetManager) {
+	public IrradianceMapGenerator(AssetManager assetManager) {
 		fbo = new FrameBuffer(SIZE, SIZE);
 		
-		shader = assetManager.loadShader("/shaders/cubeVS.glsl", "/shaders/equirectangularToCubemapFS.glsl");
+		shader = assetManager.loadShader("/shaders/cubeVS.glsl", "/shaders/irradianceConvolutionFS.glsl");
 		shader.bind();
-		shader.setInt("equirectangularMap", 0);
+		shader.setInt("environmentMap", 0);
 		shader.setMatrix4f("projectionMatrix", PROJECTION_MATRIX);
 		shader.unbind();
 	}
 	
-	public Texture generate(CubeRenderer cubeRenderer, Texture texture) {
+	public Texture generate(CubeRenderer cubeRenderer, Texture environmentMap) {
 		Texture cubemap = TextureLoader.generateCubemap(SIZE, TextureParameters.DEFAULT_HDR);
 		
 		fbo.bind();
@@ -52,7 +52,7 @@ public class EquirectangularToCubemapGenerator {
 		shader.bind();
 		
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
+		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, environmentMap.getId());
 		
 		for (int i = 0; i < 6; i++) {
 			shader.setMatrix4f("viewMatrix", VIEW_MATRICES[i]);

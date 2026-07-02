@@ -10,6 +10,8 @@ uniform sampler2D gAlbedo;
 uniform sampler2D gARM;
 uniform sampler2D gEmissive;
 
+uniform samplerCube irradianceMap;
+
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
 
@@ -54,6 +56,10 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+} 
 
 vec3 reconstructWorldPosition(vec2 uv, float depth) {
 	vec4 clipSpacePosition = vec4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
@@ -112,7 +118,14 @@ void main() {
 	vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 	
 	// Ambient Lighting
-	vec3 ambient = vec3(0.1) * albedo * ao;
+	kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+	kD = vec3(1.0) - kS;
+	kD *= 1.0 - metallic;
+	
+	vec3 irradiance = texture(irradianceMap, N).rgb;
+	vec3 diffuse = irradiance * albedo;
+	
+	vec3 ambient = (kD * diffuse) * ao;
 	
 	// Emissive Lighting
 	vec3 emissive = texture(gEmissive, passTextureCoords).rgb;

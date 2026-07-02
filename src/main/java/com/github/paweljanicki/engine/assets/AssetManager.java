@@ -115,6 +115,7 @@ public class AssetManager {
 			return;
 		
 		GL11.glDeleteTextures(environment.getEnvironmentMap().getId());
+		GL11.glDeleteTextures(environment.getIrradianceMap().getId());
 		environments.remove(filePath);
 	}
 	
@@ -135,6 +136,7 @@ public class AssetManager {
 		
 		for (Environment environment : environments.values()) {
 			GL11.glDeleteTextures(environment.getEnvironmentMap().getId());
+			GL11.glDeleteTextures(environment.getIrradianceMap().getId());
 		}
 		
 		textures.clear();

@@ -39,6 +39,7 @@ public class LightingPass implements IRenderPass {
 		shader.setInt("gAlbedo", 2);
 		shader.setInt("gARM", 3);
 		shader.setInt("gEmissive", 4);
+		shader.setInt("irradianceMap", 5);
 		shader.unbind();
 	}
 
@@ -80,6 +81,9 @@ public class LightingPass implements IRenderPass {
 		
 		GL13.glActiveTexture(GL13.GL_TEXTURE4);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, gBuffer.getColorTexture(3).getId());
+		
+		GL13.glActiveTexture(GL13.GL_TEXTURE5);
+		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, scene.getEnvironment().getIrradianceMap().getId());
 		
 		helpers.getQuadRenderer().render();
 		
