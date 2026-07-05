@@ -7,7 +7,9 @@ import org.lwjgl.opengl.GL30;
 
 import com.github.paweljanicki.engine.assets.AssetManager;
 import com.github.paweljanicki.engine.assets.shaders.Shader;
+import com.github.paweljanicki.engine.assets.textures.Texture;
 import com.github.paweljanicki.engine.assets.textures.TextureParameters;
+import com.github.paweljanicki.engine.renderer.BrdfLutGenerator;
 import com.github.paweljanicki.engine.renderer.FrameBuffer;
 import com.github.paweljanicki.engine.renderer.IRenderPass;
 import com.github.paweljanicki.engine.renderer.RenderContext;
@@ -20,6 +22,8 @@ public class LightingPass implements IRenderPass {
 	
 	private FrameBuffer lightingFbo;
 	private Shader shader;
+	
+	private Texture brdfLut;
 	
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
@@ -40,7 +44,13 @@ public class LightingPass implements IRenderPass {
 		shader.setInt("gARM", 3);
 		shader.setInt("gEmissive", 4);
 		shader.setInt("irradianceMap", 5);
+		shader.setInt("prefilterMap", 6);
+		shader.setInt("brdfLUT", 7);
 		shader.unbind();
+		
+		BrdfLutGenerator brdfLutGenerator = new BrdfLutGenerator(assetManager);
+		brdfLut = brdfLutGenerator.generate();
+		brdfLutGenerator.cleanUp();
 	}
 
 	@Override
@@ -85,6 +95,12 @@ public class LightingPass implements IRenderPass {
 		GL13.glActiveTexture(GL13.GL_TEXTURE5);
 		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, scene.getEnvironment().getIrradianceMap().getId());
 		
+		GL13.glActiveTexture(GL13.GL_TEXTURE6);
+		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, scene.getEnvironment().getPrefilterMap().getId());
+		
+		GL13.glActiveTexture(GL13.GL_TEXTURE7);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, brdfLut.getId());
+		
 		helpers.getQuadRenderer().render();
 		
 		shader.unbind();
@@ -94,5 +110,10 @@ public class LightingPass implements IRenderPass {
 		
 		targets.setCurrentRenderTarget(lightingFbo);
 	}
-
+	
+	@Override
+	public void cleanUp() {
+		GL11.glDeleteTextures(brdfLut.getId());
+	}
+	
 }

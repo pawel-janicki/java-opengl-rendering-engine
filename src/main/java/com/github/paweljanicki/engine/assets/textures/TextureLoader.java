@@ -58,20 +58,19 @@ public class TextureLoader {
 			STBImage.stbi_image_free((FloatBuffer) buffer);
 		}
 		
-		if (textureParameters.generateMipmaps)
-			GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
+		applyParameters(GL11.GL_TEXTURE_2D, textureParameters);
 		
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, textureParameters.minFilter);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, textureParameters.magFilter);
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 		
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, textureParameters.wrapS);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, textureParameters.wrapT);
-		
-		if (textureParameters.enableAnisotropicFiltering) {
-			float amount = Math.min(8, GL11.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
-			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
-		}
-		
+		return new Texture(id);
+	}
+	
+	public static Texture generate(int width, int height, TextureParameters textureParameters) {
+		int id = GL11.glGenTextures();
+		GL11.glBindTexture(GL13.GL_TEXTURE_2D, id);
+		GL11.glTexImage2D(GL13.GL_TEXTURE_2D, 0, textureParameters.internalFormat, width, height, 0, textureParameters.format, textureParameters.type, (ByteBuffer) null);
+		applyParameters(GL11.GL_TEXTURE_2D, textureParameters);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 		
 		return new Texture(id);
@@ -86,13 +85,25 @@ public class TextureLoader {
 			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, textureParameters.internalFormat, size, size, 0, textureParameters.format, textureParameters.type, buffer);
 		}
 		
-		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MIN_FILTER, textureParameters.minFilter);
-		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MAG_FILTER, textureParameters.magFilter);
-		
-		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_WRAP_S, textureParameters.wrapS);
-		GL11.glTexParameteri(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_WRAP_T, textureParameters.wrapT);
+		applyParameters(GL13.GL_TEXTURE_CUBE_MAP, textureParameters);
 		
 		return new Texture(id);
+	}
+	
+	private static void applyParameters(int target, TextureParameters parameters) {
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_MIN_FILTER, parameters.minFilter);
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_MAG_FILTER, parameters.magFilter);
+		
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_S, parameters.wrapS);
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_T, parameters.wrapT);
+		
+		if (parameters.generateMipmaps)
+			GL30.glGenerateMipmap(target);
+		
+		if (parameters.enableAnisotropicFiltering) {
+			float amount = Math.min(8, GL11.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
+			GL11.glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+		}
 	}
 	
 }

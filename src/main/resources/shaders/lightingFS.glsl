@@ -11,6 +11,8 @@ uniform sampler2D gARM;
 uniform sampler2D gEmissive;
 
 uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
 
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -20,6 +22,8 @@ uniform mat4 inverseProjectionMatrix;
 uniform mat4 inverseViewMatrix;
 
 const float PI = 3.14159265359;
+
+const float MAX_REFLECTION_LOD = 4.0;
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
 	float a = roughness * roughness;
@@ -59,7 +63,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-} 
+}
 
 vec3 reconstructWorldPosition(vec2 uv, float depth) {
 	vec4 clipSpacePosition = vec4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
@@ -118,14 +122,21 @@ void main() {
 	vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 	
 	// Ambient Lighting
-	kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+	F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+	
+	kS = F;
 	kD = vec3(1.0) - kS;
 	kD *= 1.0 - metallic;
 	
 	vec3 irradiance = texture(irradianceMap, N).rgb;
-	vec3 diffuse = irradiance * albedo;
+	vec3 ambientDiffuse = irradiance * albedo;
 	
-	vec3 ambient = (kD * diffuse) * ao;
+	vec3 R = reflect(-V, N);
+	vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 ambientSpecular = prefilteredColor * (F * brdf.x + brdf.y);
+	
+	vec3 ambient = (kD * ambientDiffuse + ambientSpecular) * ao;
 	
 	// Emissive Lighting
 	vec3 emissive = texture(gEmissive, passTextureCoords).rgb;

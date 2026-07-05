@@ -6,5 +6,6 @@ public interface IRenderPass {
 	
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height);
 	public void render(RenderContext context, RenderTargets targets, RenderHelpers helpers);
+	public default void cleanUp() { };
 	
 }
