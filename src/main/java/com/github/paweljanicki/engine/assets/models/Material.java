@@ -15,6 +15,7 @@ public class Material {
 	private Texture metallicMap;
 	private Texture aoMap;
 	private Texture emissiveMap;
+	private Texture normalMap;
 	
 	public Vector3f getAlbedo() {
 		return albedo;
@@ -78,6 +79,14 @@ public class Material {
 	
 	public void setEmissiveMap(Texture emissiveMap) {
 		this.emissiveMap = emissiveMap;
+	}
+	
+	public Texture getNormalMap() {
+		return normalMap;
+	}
+	
+	public void setNormalMap(Texture normalMap) {
+		this.normalMap = normalMap;
 	}
 	
 }

@@ -41,6 +41,7 @@ public class GeometryPass implements IRenderPass {
 		shader.setInt("material.metallicMap", 2);
 		shader.setInt("material.aoMap", 3);
 		shader.setInt("material.emissiveMap", 4);
+		shader.setInt("material.normalMap", 5);
 		shader.unbind();
 	}
 	
@@ -72,6 +73,7 @@ public class GeometryPass implements IRenderPass {
 				shader.setBoolean("material.hasMetallicMap", material.getMetallicMap() != null);
 				shader.setBoolean("material.hasAoMap", material.getAoMap() != null);
 				shader.setBoolean("material.hasEmissiveMap", material.getEmissiveMap() != null);
+				shader.setBoolean("material.hasNormalMap", material.getNormalMap() != null);
 				
 				GL13.glActiveTexture(GL13.GL_TEXTURE0);
 				GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getAlbedoMap() != null ? material.getAlbedoMap().getId() : 0);
@@ -87,6 +89,9 @@ public class GeometryPass implements IRenderPass {
 				
 				GL13.glActiveTexture(GL13.GL_TEXTURE4);
 				GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getEmissiveMap() != null ? material.getEmissiveMap().getId() : 0);
+				
+				GL13.glActiveTexture(GL13.GL_TEXTURE5);
+				GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getNormalMap() != null ? material.getNormalMap().getId() : 0);
 				
 				GL30.glBindVertexArray(modelPart.getMesh().getVaoId());
 				GL11.glDrawElements(GL11.GL_TRIANGLES, modelPart.getMesh().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);

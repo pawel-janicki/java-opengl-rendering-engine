@@ -66,6 +66,7 @@ public class ModelLoader {
 			AIString metallicMapPath = AIString.malloc(stack);
 			AIString aoMapPath = AIString.malloc(stack);
 			AIString emissiveMapPath = AIString.malloc(stack);
+			AIString normalMapPath = AIString.malloc(stack);
 			
 			if (Assimp.aiGetMaterialColor(aiMaterial, Assimp.AI_MATKEY_COLOR_DIFFUSE, Assimp.aiTextureType_NONE, 0, albedo) == 0)
 				material.setAlbedo(new Vector3f(albedo.r(), albedo.g(), albedo.b()));
@@ -90,6 +91,9 @@ public class ModelLoader {
 			
 			if (Assimp.aiGetMaterialTexture(aiMaterial, Assimp.aiTextureType_EMISSIVE, 0, emissiveMapPath, (IntBuffer) null, null, null, null, null, null) == 0)
 				material.setEmissiveMap(assetManager.loadTexture(texturesDirectory + "/" + Paths.get(emissiveMapPath.dataString()).getFileName().toString(), TextureParameters.DEFAULT_SRGBA));
+			
+			if (Assimp.aiGetMaterialTexture(aiMaterial, Assimp.aiTextureType_NORMALS, 0, normalMapPath, (IntBuffer) null, null, null, null, null, null) == 0)
+				material.setNormalMap(assetManager.loadTexture(texturesDirectory + "/" + Paths.get(normalMapPath.dataString()).getFileName().toString(), TextureParameters.DEFAULT_RGBA));
 		}
 		
 		return material;
@@ -114,11 +118,14 @@ public class ModelLoader {
 		Buffer verticesBuffer = mesh.mVertices();
 		Buffer textureCoordsBuffer = mesh.mTextureCoords(0);
 		Buffer normalsBuffer = mesh.mNormals();
+		Buffer tangentsBuffer = mesh.mTangents();
+		Buffer bitangentsBuffer = mesh.mBitangents();
 		org.lwjgl.assimp.AIFace.Buffer facesBuffer = mesh.mFaces();
 		
 		float[] positions = new float[verticesBuffer.limit() * 3];
 		float[] textureCoords = new float[textureCoordsBuffer.limit() * 2];
 		float[] normals = new float[normalsBuffer.limit() * 3];
+		float[] tangents = new float[tangentsBuffer.limit() * 4];
 		int[] indices = new int[facesBuffer.limit() * 3];
 		
 		for (int i = 0; i < verticesBuffer.limit(); i++) {
@@ -150,6 +157,25 @@ public class ModelLoader {
 			normals[i * 3 + 2] = n.z();
 		}
 		
+		for (int i = 0; i < tangentsBuffer.limit(); i++) {
+			AIVector3D tangent = tangentsBuffer.get(i);
+			AIVector3D bitangent = bitangentsBuffer.get(i);
+			AIVector3D normal = normalsBuffer.get(i);
+			
+			Vector3f T = new Vector3f(tangent.x(), tangent.y(), tangent.z());
+			Vector3f B = new Vector3f(bitangent.x(), bitangent.y(), bitangent.z());
+			Vector3f N = new Vector3f(normal.x(), normal.y(), normal.z());
+			
+			Vector3f crossNT = new Vector3f();
+			N.cross(T, crossNT);
+			float handedness = (crossNT.dot(B) < 0) ? -1 : 1;
+			
+			tangents[i * 4] = T.x();
+			tangents[i * 4 + 1] = T.y();
+			tangents[i * 4 + 2] = T.z();
+			tangents[i * 4 + 3] = handedness;
+		}
+		
 		for (int i = 0; i < facesBuffer.limit(); i++) {
 			AIFace face = facesBuffer.get(i);
 			
@@ -160,7 +186,7 @@ public class ModelLoader {
 			}
 		}
 		
-		return MeshLoader.load(positions, textureCoords, normals, indices);
+		return MeshLoader.load(positions, textureCoords, normals, tangents, indices);
 	}
 	
 	private static Matrix4f convertAIMatrix(AIMatrix4x4 AIMatrix) {

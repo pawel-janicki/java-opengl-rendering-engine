@@ -36,20 +36,22 @@ public class MeshLoader {
 		return new Mesh(vaoId, indices.length, ebo, positionsVbo, textureCoordsVbo);
 	}
 	
-	public static Mesh load(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
+	public static Mesh load(float[] positions, float[] textureCoords, float[] normals, float[] tangents, int[] indices) {
 		int vaoId = createVAO();
 		int ebo = storeIndicesBuffer(indices);
 		int positionsVbo = storeDataInAttributeList(0, 3, positions);
 		int textureCoordsVbo = storeDataInAttributeList(1, 2, textureCoords);
 		int normalsVbo = storeDataInAttributeList(2, 3, normals);
+		int tangentsVbo = storeDataInAttributeList(3, 4, tangents);
 		
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
+		GL20.glEnableVertexAttribArray(3);
 		
 		GL30.glBindVertexArray(0);
 		
-		return new Mesh(vaoId, indices.length, ebo, positionsVbo, textureCoordsVbo, normalsVbo);
+		return new Mesh(vaoId, indices.length, ebo, positionsVbo, textureCoordsVbo, normalsVbo, tangentsVbo);
 	}
 	
 	private static int createVAO() {
