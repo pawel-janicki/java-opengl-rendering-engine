@@ -28,7 +28,7 @@ public class LightingPass implements IRenderPass {
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
 		lightingFbo = new FrameBuffer(width, height);
-		lightingFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
+		lightingFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_LINEAR, GL11.GL_LINEAR, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
 		lightingFbo.bind();
 		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL11.GL_TEXTURE_2D, targets.get("gBuffer").getDepthTexture().getId(), 0);
 		lightingFbo.unbind();

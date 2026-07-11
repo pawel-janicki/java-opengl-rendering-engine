@@ -7,6 +7,7 @@ import com.github.paweljanicki.engine.Engine;
 import com.github.paweljanicki.engine.IGame;
 import com.github.paweljanicki.engine.assets.models.Model;
 import com.github.paweljanicki.engine.renderer.passes.DebugPass;
+import com.github.paweljanicki.engine.renderer.passes.FXAAPass;
 import com.github.paweljanicki.engine.renderer.passes.GammaCorrectionPass;
 import com.github.paweljanicki.engine.renderer.passes.DebugPass.DebugMode;
 import com.github.paweljanicki.engine.renderer.passes.GeometryPass;
@@ -45,6 +46,7 @@ public class Game implements IGame {
 		
 		engine.getRenderer().getPipeline().addPass(new TonemapPass());
 		engine.getRenderer().getPipeline().addPass(new GammaCorrectionPass());
+		engine.getRenderer().getPipeline().addPass(new FXAAPass());
 		
 		engine.getRenderer().getPipeline().addPass(new OutputPass());
 		engine.getRenderer().getPipeline().addPass(debugPass);

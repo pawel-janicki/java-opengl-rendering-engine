@@ -24,7 +24,7 @@ public class TonemapPass implements IRenderPass {
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
 		tonemapFbo = new FrameBuffer(width, height);
-		tonemapFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
+		tonemapFbo.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_RGBA, GL30.GL_RGBA16F, GL11.GL_LINEAR, GL11.GL_LINEAR, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false));
 		tonemapFbo.checkComplete();
 		
 		targets.add("tonemap", tonemapFbo);
