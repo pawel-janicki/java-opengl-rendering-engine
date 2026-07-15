@@ -40,6 +40,7 @@ public class Renderer {
 	
 	public void cleanUp() {
 		pipeline.cleanUp();
+		helpers.cleanUp();
 	}
 	
 	public RenderPipeline getPipeline() {

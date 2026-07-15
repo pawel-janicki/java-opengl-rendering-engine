@@ -18,6 +18,7 @@ import com.github.paweljanicki.engine.renderer.passes.TonemapPass;
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
 import com.github.paweljanicki.engine.scene.Entity;
+import com.github.paweljanicki.engine.scene.InstancedEntity;
 import com.github.paweljanicki.engine.scene.Scene;
 
 public class Game implements IGame {
@@ -52,10 +53,19 @@ public class Game implements IGame {
 		engine.getRenderer().getPipeline().addPass(debugPass);
 		
 		Model damagedHelmet = engine.getAssetManager().loadModel("/models/DamagedHelmet/DamagedHelmet.gltf", "/models/DamagedHelmet/textures");
+		Model cube = engine.getAssetManager().loadModel("/models/Cube/cube.gltf", "");
+		
+		InstancedEntity cubes = new InstancedEntity(cube);
+		for (int x = 0; x < 300; x++) {
+			for (int z = 0; z < 300; z++) {
+				cubes.addInstance(new Vector3f(x * 2.25f, 0, z * 2.25f), new Vector3f(), new Vector3f(1));
+			}
+		}
 		
 		scene = new Scene();
 		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
-		scene.addEntity(new Entity(damagedHelmet));
+		scene.addEntity(new Entity(damagedHelmet, new Vector3f(0, 5, 0)));
+		scene.addInstancedEntity(cubes);
 		scene.setEnvironment(engine.getAssetManager().loadEnvironment("/hdr/kloppenheim_06_puresky_4k.hdr"));
 		
 		camera = new Camera(new Vector3f(0, 0, 2));
@@ -91,6 +101,9 @@ public class Game implements IGame {
 			debugPass.setMode(DebugMode.EMISSIVE);
 			debugPass.setEnabled(true);
 		}
+		
+		if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_G))
+			scene.getInstancedEntities().get(0).addInstance(camera.getPosition(), new Vector3f(), new Vector3f(1));
 		
 		if (engine.getWindow().isMouseLocked())
 			cameraController.update(deltaTime);

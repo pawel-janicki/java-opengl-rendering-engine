@@ -116,6 +116,7 @@ public class AssetManager {
 		
 		GL11.glDeleteTextures(environment.getEnvironmentMap().getId());
 		GL11.glDeleteTextures(environment.getIrradianceMap().getId());
+		GL11.glDeleteTextures(environment.getPrefilterMap().getId());
 		environments.remove(filePath);
 	}
 	

@@ -8,6 +8,8 @@ import com.github.paweljanicki.engine.assets.environments.Environment;
 public class Scene {
 	
 	private List<Entity> entities = new ArrayList<>();
+	private List<InstancedEntity> instancedEntities = new ArrayList<>();
+	
 	private DirectionalLight directionalLight;
 	
 	private Environment environment;
@@ -22,6 +24,18 @@ public class Scene {
 	
 	public List<Entity> getEntities() {
 		return entities;
+	}
+	
+	public void addInstancedEntity(InstancedEntity entity) {
+		instancedEntities.add(entity);
+	}
+	
+	public void removeInstancedEntity(InstancedEntity entity) {
+		instancedEntities.remove(entity);
+	}
+	
+	public List<InstancedEntity> getInstancedEntities() {
+		return instancedEntities;
 	}
 	
 	public DirectionalLight getDirectionalLight() {

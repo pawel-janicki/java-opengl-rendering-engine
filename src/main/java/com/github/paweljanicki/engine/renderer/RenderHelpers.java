@@ -5,6 +5,11 @@ public class RenderHelpers {
 	private final QuadRenderer quadRenderer = new QuadRenderer();
 	private final CubeRenderer cubeRenderer = new CubeRenderer();
 	
+	public void cleanUp() {
+		quadRenderer.cleanUp();
+		cubeRenderer.cleanUp();
+	}
+	
 	public QuadRenderer getQuadRenderer() {
 		return quadRenderer;
 	}

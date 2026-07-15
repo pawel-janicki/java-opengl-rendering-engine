@@ -13,13 +13,13 @@ public class MeshLoader {
 	
 	public static Mesh loadCube(float[] positions) {
 		int vaoId = createVAO();
-		storeDataInAttributeList(0, 3, positions);
+		int positionsVbo = storeDataInAttributeList(0, 3, positions);
 		
 		GL20.glEnableVertexAttribArray(0);
 		
 		GL30.glBindVertexArray(0);
 		
-		return new Mesh(vaoId, positions.length);
+		return new Mesh(vaoId, positions.length, positionsVbo);
 	}
 	
 	public static Mesh load2D(float[] positions, float[] textureCoords, int[] indices) {

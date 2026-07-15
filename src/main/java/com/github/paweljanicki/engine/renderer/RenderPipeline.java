@@ -36,6 +36,10 @@ public class RenderPipeline {
 	
 	public void cleanUp() {
 		targets.cleanUp();
+		
+		for (IRenderPass pass : renderPasses) {
+			pass.cleanUp();
+		}
 	}
 	
 }

@@ -72,9 +72,9 @@ public class Engine {
 	}
 	
 	private void cleanUp() {
-		window.cleanUp();
-		assetManager.cleanUp();
 		renderer.cleanUp();
+		assetManager.cleanUp();
+		window.cleanUp();
 	}
 	
 	public void close() {
