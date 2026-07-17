@@ -76,6 +76,16 @@ vec3 reconstructWorldPosition(vec2 uv, float depth) {
 	return worldSpacePosition.xyz;
 }
 
+vec3 decodeNormal(vec2 p) {
+	vec3 normal = vec3(p.xy, 1.0 - abs(p.x) - abs(p.y));
+	vec2 sign = vec2((normal.x >= 0.0) ? 1.0 : -1.0, (normal.y >= 0.0) ? 1.0 : -1.0);
+	
+	if (normal.z < 0.0)
+		normal.xy = (1.0 - abs(normal.yx)) * sign;
+	
+	return normalize(normal);
+}
+
 void main() {
 	float depth = texture(gDepth, passTextureCoords).r;
 	if (depth >= 1.0) {
@@ -96,7 +106,7 @@ void main() {
 	F0 = mix(F0, albedo, metallic);
 	
 	vec3 worldPosition = reconstructWorldPosition(passTextureCoords, depth);
-	vec3 N = normalize(texture(gNormal, passTextureCoords).rgb);
+	vec3 N = decodeNormal(texture(gNormal, passTextureCoords).rg);
 	vec3 V = normalize(cameraPosition - worldPosition);
 	
 	// Light Properties

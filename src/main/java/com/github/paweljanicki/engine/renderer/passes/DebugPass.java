@@ -30,9 +30,10 @@ public class DebugPass implements IRenderPass {
 	
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
-		shader = assetManager.loadShader("/shaders/quadVS.glsl", "/shaders/outputFS.glsl");
+		shader = assetManager.loadShader("/shaders/quadVS.glsl", "/shaders/debugFS.glsl");
 		shader.bind();
 		shader.setInt("outputTexture", 0);
+		shader.setInt("depthTexture", 1);
 		shader.unbind();
 	}
 	
@@ -58,9 +59,13 @@ public class DebugPass implements IRenderPass {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		shader.bind();
+		shader.setBoolean("showNormals", mode == DebugMode.NORMALS);
 		
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+		
+		GL13.glActiveTexture(GL13.GL_TEXTURE1);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, gBuffer.getDepthTexture().getId());
 		
 		helpers.getQuadRenderer().render();
 		
