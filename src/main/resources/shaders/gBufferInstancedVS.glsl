@@ -12,7 +12,7 @@ out mat3 TBN;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
-layout(std430, binding = 0) buffer instanceBuffer {
+layout(std430, binding = 1) buffer instanceBuffer {
 	mat4[] instanceMatrices;
 };
 

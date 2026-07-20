@@ -1,8 +1,11 @@
 package com.github.paweljanicki.engine.assets.textures;
 
+import org.lwjgl.opengl.ARBBindlessTexture;
+
 public class Texture {
 	
-	private int id;
+	private final int id;
+	private long bindlessHandle;
 	
 	public Texture(int id) {
 		this.id = id;
@@ -10,6 +13,15 @@ public class Texture {
 	
 	public int getId() {
 		return id;
+	}
+	
+	public long getBindlessHandle() {
+		if (bindlessHandle == 0) {
+			bindlessHandle = ARBBindlessTexture.glGetTextureHandleARB(id);
+			ARBBindlessTexture.glMakeTextureHandleResidentARB(bindlessHandle);
+		}
+		
+		return bindlessHandle;
 	}
 	
 }

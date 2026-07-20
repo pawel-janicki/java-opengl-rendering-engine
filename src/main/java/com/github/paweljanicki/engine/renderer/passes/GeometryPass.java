@@ -13,7 +13,6 @@ import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
@@ -21,7 +20,7 @@ import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL43;
 
 import com.github.paweljanicki.engine.assets.AssetManager;
-import com.github.paweljanicki.engine.assets.models.Material;
+import com.github.paweljanicki.engine.assets.MaterialManager;
 import com.github.paweljanicki.engine.assets.models.ModelPart;
 import com.github.paweljanicki.engine.assets.shaders.Shader;
 import com.github.paweljanicki.engine.assets.textures.TextureParameters;
@@ -37,6 +36,8 @@ import com.github.paweljanicki.engine.scene.Scene;
 
 public class GeometryPass implements IRenderPass {
 	
+	private MaterialManager materialManager;
+	
 	private FrameBuffer gBuffer;
 	
 	private Shader shader;
@@ -47,6 +48,8 @@ public class GeometryPass implements IRenderPass {
 	
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
+		this.materialManager = assetManager.getMaterialManager();
+		
 		gBuffer = new FrameBuffer(width, height);
 		gBuffer.addDepthAttachment(new TextureParameters(GL11.GL_FLOAT, GL30.GL_DEPTH_COMPONENT, GL30.GL_DEPTH_COMPONENT24, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false)); // Depth
 		gBuffer.addColorAttachment(new TextureParameters(GL11.GL_FLOAT, GL30.GL_RG, GL31.GL_RG16_SNORM, GL11.GL_NEAREST, GL11.GL_NEAREST, GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE, false, false)); // Normal
@@ -58,24 +61,7 @@ public class GeometryPass implements IRenderPass {
 		targets.add("gBuffer", gBuffer);
 		
 		shader = assetManager.loadShader("/shaders/gBufferVS.glsl", "/shaders/gBufferFS.glsl");
-		shader.bind();
-		shader.setInt("material.albedoMap", 0);
-		shader.setInt("material.roughnessMap", 1);
-		shader.setInt("material.metallicMap", 2);
-		shader.setInt("material.aoMap", 3);
-		shader.setInt("material.emissiveMap", 4);
-		shader.setInt("material.normalMap", 5);
-		shader.unbind();
-		
 		instancedShader = assetManager.loadShader("/shaders/gBufferInstancedVS.glsl", "/shaders/gBufferFS.glsl");
-		instancedShader.bind();
-		instancedShader.setInt("material.albedoMap", 0);
-		instancedShader.setInt("material.roughnessMap", 1);
-		instancedShader.setInt("material.metallicMap", 2);
-		instancedShader.setInt("material.aoMap", 3);
-		instancedShader.setInt("material.emissiveMap", 4);
-		instancedShader.setInt("material.normalMap", 5);
-		instancedShader.unbind();
 	}
 	
 	@Override
@@ -89,6 +75,9 @@ public class GeometryPass implements IRenderPass {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		
+		materialManager.updateMaterialBuffer();
+		GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 0, materialManager.getMaterialSsboId());
 		
 		shader.bind();
 		shader.setMatrix4f("projectionMatrix", camera.getProjectionMatrix(context.getWidth(), context.getHeight()));
@@ -113,7 +102,7 @@ public class GeometryPass implements IRenderPass {
 			shader.setMatrix4f("transformationMatrix", entity.getTransformationMatrix());
 			
 			for (ModelPart modelPart : entity.getModel().getModelParts()) {
-				bindMaterial(shader, modelPart.getMaterial());
+				shader.setInt("materialId", modelPart.getMaterialId());
 				
 				GL30.glBindVertexArray(modelPart.getMesh().getVaoId());
 				GL11.glDrawElements(GL11.GL_TRIANGLES, modelPart.getMesh().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
@@ -155,10 +144,10 @@ public class GeometryPass implements IRenderPass {
 			
 			activeEntities.add(instancedEntity);
 			
+			GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, ssboId);
+			
 			for (ModelPart modelPart : instancedEntity.getModel().getModelParts()) {
-				bindMaterial(instancedShader, modelPart.getMaterial());
-				
-				GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 0, ssboId);
+				instancedShader.setInt("materialId", modelPart.getMaterialId());
 				
 				GL30.glBindVertexArray(modelPart.getMesh().getVaoId());
 				GL33.glDrawElementsInstanced(GL11.GL_TRIANGLES, modelPart.getMesh().getIndexCount(), GL11.GL_UNSIGNED_INT, 0, instancedEntity.getInstancesAmount());
@@ -177,37 +166,6 @@ public class GeometryPass implements IRenderPass {
 		}
 		
 		activeEntities.clear();
-	}
-	
-	private void bindMaterial(Shader shader, Material material) {
-		shader.setVector3f("material.albedo", material.getAlbedo());
-		shader.setFloat("material.roughness", material.getRoughness());
-		shader.setFloat("material.metallic", material.getMetallic());
-		
-		shader.setBoolean("material.hasAlbedoMap", material.getAlbedoMap() != null);
-		shader.setBoolean("material.hasRoughnessMap", material.getRoughnessMap() != null);
-		shader.setBoolean("material.hasMetallicMap", material.getMetallicMap() != null);
-		shader.setBoolean("material.hasAoMap", material.getAoMap() != null);
-		shader.setBoolean("material.hasEmissiveMap", material.getEmissiveMap() != null);
-		shader.setBoolean("material.hasNormalMap", material.getNormalMap() != null);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getAlbedoMap() != null ? material.getAlbedoMap().getId() : 0);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE1);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getRoughnessMap() != null ? material.getRoughnessMap().getId() : 0);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE2);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getMetallicMap() != null ? material.getMetallicMap().getId() : 0);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE3);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getAoMap() != null ? material.getAoMap().getId() : 0);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE4);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getEmissiveMap() != null ? material.getEmissiveMap().getId() : 0);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE5);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, material.getNormalMap() != null ? material.getNormalMap().getId() : 0);
 	}
 	
 	private FloatBuffer generateBufferData(InstancedEntity instancedEntity) {

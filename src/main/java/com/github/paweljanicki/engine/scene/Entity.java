@@ -22,15 +22,15 @@ public class Entity {
 		this(model, new Vector3f());
 	}
 	
-	public Entity(Model model, Vector3f position) {
+	public Entity(Model model, Vector3fc position) {
 		this(model, position, new Vector3f());
 	}
 	
-	public Entity(Model model, Vector3f position, Vector3f rotation) {
+	public Entity(Model model, Vector3fc position, Vector3fc rotation) {
 		this(model, position, rotation, new Vector3f(1));
 	}
 	
-	public Entity(Model model, Vector3f position, Vector3f rotation, Vector3f scale) {
+	public Entity(Model model, Vector3fc position, Vector3fc rotation, Vector3fc scale) {
 		this.model = model;
 		this.position = new Vector3f(position);
 		this.rotation = new Vector3f(rotation);

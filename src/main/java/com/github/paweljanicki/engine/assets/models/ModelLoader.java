@@ -34,18 +34,20 @@ public class ModelLoader {
 			throw new RuntimeException("[ERROR] >> Failed to load model '" + filePath + "'! Failure reason: " + Assimp.aiGetErrorString());
 		
 		try {
-			List<Material> materials = new ArrayList<>();
+			List<Integer> materialIds = new ArrayList<>();
 			
 			PointerBuffer materialsBuffer = scene.mMaterials();
 			for (int i = 0; i < materialsBuffer.limit(); i++) {
-				AIMaterial material = AIMaterial.create(materialsBuffer.get(i));
-				materials.add(processMaterial(assetManager, texturesDirectory, material));
+				AIMaterial aiMaterial = AIMaterial.create(materialsBuffer.get(i));
+				Material material = processMaterial(assetManager, texturesDirectory, aiMaterial);
+				int materialId = assetManager.getMaterialManager().addMaterial(material);
+				materialIds.add(materialId);
 			}
 			
 			List<ModelPart> modelParts = new ArrayList<>();
 			
 			AINode rootNode = scene.mRootNode();
-			processNode(scene, rootNode, new Matrix4f(), modelParts, materials);
+			processNode(scene, rootNode, new Matrix4f(), modelParts, materialIds);
 			
 			return new Model(modelParts);
 		} finally {
@@ -99,18 +101,18 @@ public class ModelLoader {
 		return material;
 	}
 	
-	private static void processNode(AIScene scene, AINode node, Matrix4f parentTransformationMatrix, List<ModelPart> modelParts, List<Material> materials) {
+	private static void processNode(AIScene scene, AINode node, Matrix4f parentTransformationMatrix, List<ModelPart> modelParts, List<Integer> materialIds) {
 		Matrix4f localTransformationMatrix = convertAIMatrix(node.mTransformation());
 		Matrix4f globalTransformationMatrix = new Matrix4f(parentTransformationMatrix).mul(localTransformationMatrix);
 		Matrix3f normalMatrix = new Matrix3f(globalTransformationMatrix).invert().transpose();
 		
 		for (int i = 0; i < node.mNumMeshes(); i++) {
 			AIMesh mesh = AIMesh.create(scene.mMeshes().get(node.mMeshes().get(i)));
-			modelParts.add(new ModelPart(processMesh(mesh, globalTransformationMatrix, normalMatrix), materials.get(mesh.mMaterialIndex())));
+			modelParts.add(new ModelPart(processMesh(mesh, globalTransformationMatrix, normalMatrix), materialIds.get(mesh.mMaterialIndex())));
 		}
 		
 		for (int i = 0; i < node.mNumChildren(); i++) {
-			processNode(scene, AINode.create(node.mChildren().get(i)), globalTransformationMatrix, modelParts, materials);
+			processNode(scene, AINode.create(node.mChildren().get(i)), globalTransformationMatrix, modelParts, materialIds);
 		}
 	}
 	

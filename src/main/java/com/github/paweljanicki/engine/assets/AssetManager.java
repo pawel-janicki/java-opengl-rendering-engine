@@ -3,6 +3,7 @@ package com.github.paweljanicki.engine.assets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.lwjgl.opengl.ARBBindlessTexture;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
@@ -24,6 +25,8 @@ public class AssetManager {
 	private Map<String, Shader> shaders = new HashMap<>();
 	private Map<String, Environment> environments = new HashMap<>();
 	
+	private MaterialManager materialManager = new MaterialManager();
+	
 	private EnvironmentLoader environmentLoader = new EnvironmentLoader(this);
 	
 	public Texture loadTexture(String filePath, TextureParameters textureParameters) {
@@ -41,6 +44,9 @@ public class AssetManager {
 		Texture texture = textures.get(filePath);
 		if (texture == null)
 			return;
+		
+		if (texture.getBindlessHandle() != 0)
+			ARBBindlessTexture.glMakeTextureHandleNonResidentARB(texture.getBindlessHandle());
 		
 		GL11.glDeleteTextures(texture.getId());
 		textures.remove(filePath);
@@ -124,6 +130,9 @@ public class AssetManager {
 		environmentLoader.cleanUp();
 		
 		for (Texture texture : textures.values()) {
+			if (texture.getBindlessHandle() != 0)
+				ARBBindlessTexture.glMakeTextureHandleNonResidentARB(texture.getBindlessHandle());
+			
 			GL11.glDeleteTextures(texture.getId());
 		}
 		
@@ -144,6 +153,10 @@ public class AssetManager {
 		models.clear();
 		shaders.clear();
 		environments.clear();
+	}
+	
+	public MaterialManager getMaterialManager() {
+		return materialManager;
 	}
 	
 }

@@ -1,4 +1,6 @@
-#version 330
+#version 430
+
+#extension GL_ARB_bindless_texture : require
 
 in vec2 passTextureCoords;
 in vec3 passNormal;
@@ -10,25 +12,22 @@ layout (location = 2) out vec3 gARM;
 layout (location = 3) out vec3 gEmissive;
 
 struct Material {
-	vec3 albedo;
-	float roughness;
-	float metallic;
+	vec4 albedo;
+	vec4 roughnessMetallic;
 	
 	sampler2D albedoMap;
-	bool hasAlbedoMap;
 	sampler2D metallicMap;
-	bool hasMetallicMap;
 	sampler2D roughnessMap;
-	bool hasRoughnessMap;
 	sampler2D aoMap;
-	bool hasAoMap;
 	sampler2D emissiveMap;
-	bool hasEmissiveMap;
 	sampler2D normalMap;
-	bool hasNormalMap;
 };
 
-uniform Material material;
+layout(std430, binding = 0) readonly buffer materialBuffer {
+	Material[] materials;
+};
+
+uniform int materialId;
 
 vec2 encodeNormal(vec3 normal) {
 	vec2 p = normal.xy * (1.0 / (abs(normal.x) + abs(normal.y) + abs(normal.z)));
@@ -38,20 +37,22 @@ vec2 encodeNormal(vec3 normal) {
 }
 
 void main() {
-	if (material.hasNormalMap) {
+	Material material = materials[materialId];
+	
+	if (uvec2(material.normalMap) != uvec2(0, 0)) {
 		vec3 tangentNormal = texture(material.normalMap, passTextureCoords).rgb * 2.0 - 1.0;
 		gNormal = encodeNormal(normalize(TBN * tangentNormal));
 	} else {
 		gNormal = encodeNormal(normalize(passNormal));
 	}
 	
-	gAlbedo = material.hasAlbedoMap ? vec3(texture(material.albedoMap, passTextureCoords)) : material.albedo;
+	gAlbedo = uvec2(material.albedoMap) != uvec2(0, 0) ? texture(material.albedoMap, passTextureCoords).rgb : material.albedo.rgb;
 	
-	float metallic = material.hasMetallicMap ? texture(material.metallicMap, passTextureCoords).b : material.metallic;
-	float roughness = material.hasRoughnessMap ? texture(material.roughnessMap, passTextureCoords).g : material.roughness;
-	float ao = material.hasAoMap ? texture(material.aoMap, passTextureCoords).r : 1.0;
+	float ao = uvec2(material.aoMap) != uvec2(0, 0) ? texture(material.aoMap, passTextureCoords).r : 1.0;
+	float roughness = uvec2(material.roughnessMap) != uvec2(0, 0) ? texture(material.roughnessMap, passTextureCoords).g : material.roughnessMetallic.r;
+	float metallic = uvec2(material.metallicMap) != uvec2(0, 0) ? texture(material.metallicMap, passTextureCoords).b : material.roughnessMetallic.g;
 	
 	gARM = vec3(ao, roughness, metallic);
 	
-	gEmissive = material.hasEmissiveMap ? vec3(texture(material.emissiveMap, passTextureCoords)) : vec3(0);
+	gEmissive = uvec2(material.emissiveMap) != uvec2(0, 0) ? texture(material.emissiveMap, passTextureCoords).rgb : vec3(0.0);
 }

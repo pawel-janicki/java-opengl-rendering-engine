@@ -3,19 +3,19 @@ package com.github.paweljanicki.engine.assets.models;
 public class ModelPart {
 	
 	private final Mesh mesh;
-	private final Material material;
+	private final int materialId;
 	
-	public ModelPart(Mesh mesh, Material material) {
+	public ModelPart(Mesh mesh, int materialId) {
 		this.mesh = mesh;
-		this.material = material;
+		this.materialId = materialId;
 	}
 	
 	public Mesh getMesh() {
 		return mesh;
 	}
 	
-	public Material getMaterial() {
-		return material;
+	public int getMaterialId() {
+		return materialId;
 	}
 	
 }

@@ -1,6 +1,7 @@
 package com.github.paweljanicki.engine.assets.models;
 
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import com.github.paweljanicki.engine.assets.textures.Texture;
 
@@ -17,12 +18,15 @@ public class Material {
 	private Texture emissiveMap;
 	private Texture normalMap;
 	
-	public Vector3f getAlbedo() {
+	private boolean dirty;
+	
+	public Vector3fc getAlbedo() {
 		return albedo;
 	}
 	
 	public void setAlbedo(Vector3f albedo) {
 		this.albedo.set(albedo);
+		this.dirty = true;
 	}
 	
 	public float getRoughness() {
@@ -31,6 +35,7 @@ public class Material {
 	
 	public void setRoughness(float roughness) {
 		this.roughness = roughness;
+		this.dirty = true;
 	}
 	
 	public float getMetallic() {
@@ -39,6 +44,7 @@ public class Material {
 	
 	public void setMetallic(float metallic) {
 		this.metallic = metallic;
+		this.dirty = true;
 	}
 	
 	public Texture getAlbedoMap() {
@@ -47,6 +53,7 @@ public class Material {
 	
 	public void setAlbedoMap(Texture albedoMap) {
 		this.albedoMap = albedoMap;
+		this.dirty = true;
 	}
 	
 	public Texture getRoughnessMap() {
@@ -55,6 +62,7 @@ public class Material {
 	
 	public void setRoughnessMap(Texture roughnessMap) {
 		this.roughnessMap = roughnessMap;
+		this.dirty = true;
 	}
 	
 	public Texture getMetallicMap() {
@@ -63,6 +71,7 @@ public class Material {
 	
 	public void setMetallicMap(Texture metallicMap) {
 		this.metallicMap = metallicMap;
+		this.dirty = true;
 	}
 	
 	public Texture getAoMap() {
@@ -71,6 +80,7 @@ public class Material {
 	
 	public void setAoMap(Texture aoMap) {
 		this.aoMap = aoMap;
+		this.dirty = true;
 	}
 	
 	public Texture getEmissiveMap() {
@@ -79,6 +89,7 @@ public class Material {
 	
 	public void setEmissiveMap(Texture emissiveMap) {
 		this.emissiveMap = emissiveMap;
+		this.dirty = true;
 	}
 	
 	public Texture getNormalMap() {
@@ -87,6 +98,15 @@ public class Material {
 	
 	public void setNormalMap(Texture normalMap) {
 		this.normalMap = normalMap;
+		this.dirty = true;
+	}
+	
+	public boolean isDirty() {
+		return dirty;
+	}
+	
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
 	}
 	
 }
