@@ -47,7 +47,7 @@ public class ModelLoader {
 			List<ModelPart> modelParts = new ArrayList<>();
 			
 			AINode rootNode = scene.mRootNode();
-			processNode(scene, rootNode, new Matrix4f(), modelParts, materialIds);
+			processNode(assetManager, scene, rootNode, new Matrix4f(), modelParts, materialIds);
 			
 			return new Model(modelParts);
 		} finally {
@@ -101,22 +101,22 @@ public class ModelLoader {
 		return material;
 	}
 	
-	private static void processNode(AIScene scene, AINode node, Matrix4f parentTransformationMatrix, List<ModelPart> modelParts, List<Integer> materialIds) {
+	private static void processNode(AssetManager assetManager, AIScene scene, AINode node, Matrix4f parentTransformationMatrix, List<ModelPart> modelParts, List<Integer> materialIds) {
 		Matrix4f localTransformationMatrix = convertAIMatrix(node.mTransformation());
 		Matrix4f globalTransformationMatrix = new Matrix4f(parentTransformationMatrix).mul(localTransformationMatrix);
 		Matrix3f normalMatrix = new Matrix3f(globalTransformationMatrix).invert().transpose();
 		
 		for (int i = 0; i < node.mNumMeshes(); i++) {
 			AIMesh mesh = AIMesh.create(scene.mMeshes().get(node.mMeshes().get(i)));
-			modelParts.add(new ModelPart(processMesh(mesh, globalTransformationMatrix, normalMatrix), materialIds.get(mesh.mMaterialIndex())));
+			modelParts.add(new ModelPart(processMesh(assetManager, mesh, globalTransformationMatrix, normalMatrix), materialIds.get(mesh.mMaterialIndex())));
 		}
 		
 		for (int i = 0; i < node.mNumChildren(); i++) {
-			processNode(scene, AINode.create(node.mChildren().get(i)), globalTransformationMatrix, modelParts, materialIds);
+			processNode(assetManager, scene, AINode.create(node.mChildren().get(i)), globalTransformationMatrix, modelParts, materialIds);
 		}
 	}
 	
-	private static Mesh processMesh(AIMesh mesh, Matrix4f parentTransformationMatrix, Matrix3f parentNormalMatrix) {
+	private static Mesh processMesh(AssetManager assetManager, AIMesh mesh, Matrix4f parentTransformationMatrix, Matrix3f parentNormalMatrix) {
 		Buffer verticesBuffer = mesh.mVertices();
 		Buffer textureCoordsBuffer = mesh.mTextureCoords(0);
 		Buffer normalsBuffer = mesh.mNormals();
@@ -188,7 +188,7 @@ public class ModelLoader {
 			}
 		}
 		
-		return MeshLoader.load(positions, textureCoords, normals, tangents, indices);
+		return assetManager.getMeshManager().addMesh(positions, textureCoords, normals, tangents, indices);
 	}
 	
 	private static Matrix4f convertAIMatrix(AIMatrix4x4 AIMatrix) {

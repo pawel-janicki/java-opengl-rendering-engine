@@ -5,6 +5,7 @@
 in vec2 passTextureCoords;
 in vec3 passNormal;
 in mat3 TBN;
+in flat int materialId;
 
 layout (location = 0) out vec2 gNormal;
 layout (location = 1) out vec3 gAlbedo;
@@ -23,11 +24,9 @@ struct Material {
 	sampler2D normalMap;
 };
 
-layout(std430, binding = 0) readonly buffer materialBuffer {
+layout(std430, binding = 2) readonly buffer materialBuffer {
 	Material[] materials;
 };
-
-uniform int materialId;
 
 vec2 encodeNormal(vec3 normal) {
 	vec2 p = normal.xy * (1.0 / (abs(normal.x) + abs(normal.y) + abs(normal.z)));

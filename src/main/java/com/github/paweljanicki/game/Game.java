@@ -18,7 +18,6 @@ import com.github.paweljanicki.engine.renderer.passes.TonemapPass;
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.DirectionalLight;
 import com.github.paweljanicki.engine.scene.Entity;
-import com.github.paweljanicki.engine.scene.InstancedEntity;
 import com.github.paweljanicki.engine.scene.Scene;
 
 public class Game implements IGame {
@@ -55,20 +54,19 @@ public class Game implements IGame {
 		Model damagedHelmet = engine.getAssetManager().loadModel("/models/DamagedHelmet/DamagedHelmet.gltf", "/models/DamagedHelmet/textures");
 		Model cube = engine.getAssetManager().loadModel("/models/Cube/cube.gltf", "");
 		
-		InstancedEntity cubes = new InstancedEntity(cube);
+		scene = new Scene();
+		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
+		scene.setEnvironment(engine.getAssetManager().loadEnvironment("/hdr/kloppenheim_06_puresky_4k.hdr"));
+		
+		scene.addEntity(new Entity(damagedHelmet, new Vector3f(0, 5, 0)));
+		
 		for (int x = 0; x < 300; x++) {
 			for (int z = 0; z < 300; z++) {
-				cubes.addInstance(new Vector3f(x * 2.25f, 0, z * 2.25f), new Vector3f(), new Vector3f(1));
+				scene.addEntity(new Entity(cube, new Vector3f(x * 2.25f, 0, z * 2.25f)));
 			}
 		}
 		
-		scene = new Scene();
-		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
-		scene.addEntity(new Entity(damagedHelmet, new Vector3f(0, 5, 0)));
-		scene.addInstancedEntity(cubes);
-		scene.setEnvironment(engine.getAssetManager().loadEnvironment("/hdr/kloppenheim_06_puresky_4k.hdr"));
-		
-		camera = new Camera(new Vector3f(0, 0, 2));
+		camera = new Camera(new Vector3f(-2, 7, -2), new Vector3f(25, 90 + 45, 0));
 		cameraController = new CameraController(engine.getKeyHandler(), engine.getMouseHandler(), camera);
 	}
 	
@@ -102,8 +100,10 @@ public class Game implements IGame {
 			debugPass.setEnabled(true);
 		}
 		
+		scene.getEntities().get(0).rotate(0, 10 * deltaTime, 0);
+		
 		if (engine.getKeyHandler().isKeyPressed(GLFW.GLFW_KEY_G))
-			scene.getInstancedEntities().get(0).addInstance(camera.getPosition(), new Vector3f(), new Vector3f(1));
+			scene.addEntity(new Entity(scene.getEntities().get(1).getModel(), camera.getPosition()));
 		
 		if (engine.getWindow().isMouseLocked())
 			cameraController.update(deltaTime);

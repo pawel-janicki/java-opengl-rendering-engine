@@ -9,7 +9,10 @@ import com.github.paweljanicki.engine.assets.models.Model;
 
 public class Entity {
 	
-	private Model model;
+	private Scene scene;
+	private int gpuIndex;
+	
+	private final Model model;
 	
 	private final Vector3f position;
 	private final Vector3f rotation;
@@ -39,13 +42,19 @@ public class Entity {
 		this.transformationDirty = true;
 	}
 	
+	private void markDirty() {
+		transformationDirty = true;
+		if (scene != null)
+			scene.addDirtyEntity(this);
+	}
+	
 	public void translate(Vector3f vector) {
 		translate(vector.x, vector.y, vector.z);
 	}
 	
 	public void translate(float x, float y, float z) {
 		position.add(x, y, z);
-		transformationDirty = true;
+		markDirty();
 	}
 	
 	public void rotate(Vector3f vector) {
@@ -54,7 +63,7 @@ public class Entity {
 	
 	public void rotate(float x, float y, float z) {
 		rotation.add(x, y, z);
-		transformationDirty = true;
+		markDirty();
 	}
 	
 	public void scaleBy(Vector3f vector) {
@@ -63,15 +72,23 @@ public class Entity {
 	
 	public void scaleBy(float x, float y, float z) {
 		scale.add(x, y, z);
-		transformationDirty = true;
+		markDirty();
+	}
+	
+	public void setScene(Scene scene) {
+		this.scene = scene;
+	}
+	
+	public int getGpuIndex() {
+		return gpuIndex;
+	}
+	
+	public void setGpuIndex(int gpuIndex) {
+		this.gpuIndex = gpuIndex;
 	}
 	
 	public Model getModel() {
 		return model;
-	}
-	
-	public void setModel(Model model) {
-		this.model = model;
 	}
 	
 	public Vector3fc getPosition() {
@@ -80,7 +97,7 @@ public class Entity {
 	
 	public void setPosition(Vector3f position) {
 		this.position.set(position);
-		this.transformationDirty = true;
+		markDirty();
 	}
 	
 	public Vector3fc getRotation() {
@@ -89,7 +106,7 @@ public class Entity {
 	
 	public void setRotation(Vector3f rotation) {
 		this.rotation.set(rotation);
-		this.transformationDirty = true;
+		markDirty();
 	}
 	
 	public Vector3fc getScale() {
@@ -98,7 +115,7 @@ public class Entity {
 	
 	public void setScale(Vector3f scale) {
 		this.scale.set(scale);
-		this.transformationDirty = true;
+		markDirty();
 	}
 	
 	public Matrix4fc getTransformationMatrix() {

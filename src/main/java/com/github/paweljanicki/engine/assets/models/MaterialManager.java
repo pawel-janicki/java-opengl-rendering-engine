@@ -1,4 +1,4 @@
-package com.github.paweljanicki.engine.assets;
+package com.github.paweljanicki.engine.assets.models;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -7,8 +7,6 @@ import java.util.List;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL43;
-
-import com.github.paweljanicki.engine.assets.models.Material;
 
 public class MaterialManager {
 	
