@@ -1,9 +1,9 @@
 #version 460
 
-in vec3 position;
-in vec2 textureCoords;
-in vec3 normal;
-in vec4 tangent;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec2 textureCoords;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in vec4 tangent;
 
 out vec2 passTextureCoords;
 out vec3 passNormal;

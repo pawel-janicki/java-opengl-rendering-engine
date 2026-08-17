@@ -188,6 +188,8 @@ public class GeometryPass implements IRenderPass {
 		GL43.glMultiDrawElementsIndirect(GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_INT, 0, commandsCount, 0);
 		
 		GL15.glBindBuffer(GL40.GL_DRAW_INDIRECT_BUFFER, 0);
+		
+		GL30.glBindVertexArray(0);
 	}
 	
 	@Override

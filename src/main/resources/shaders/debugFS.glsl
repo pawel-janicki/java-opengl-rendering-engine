@@ -27,7 +27,7 @@ void main() {
 		if (depth >= 1)
 			discard;
 		
-		outColor = vec4(decodeNormal(textureData.rg), 1.0);
+		outColor = vec4(decodeNormal(textureData.rg) / 2.0 + 0.5, 1.0);
 	} else {
 		outColor = textureData;
 	}
