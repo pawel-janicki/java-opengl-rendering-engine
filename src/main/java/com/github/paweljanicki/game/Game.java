@@ -13,6 +13,7 @@ import com.github.paweljanicki.engine.renderer.passes.DebugPass.DebugMode;
 import com.github.paweljanicki.engine.renderer.passes.GeometryPass;
 import com.github.paweljanicki.engine.renderer.passes.LightingPass;
 import com.github.paweljanicki.engine.renderer.passes.OutputPass;
+import com.github.paweljanicki.engine.renderer.passes.ShadowMappingPass;
 import com.github.paweljanicki.engine.renderer.passes.SkyboxPass;
 import com.github.paweljanicki.engine.renderer.passes.TonemapPass;
 import com.github.paweljanicki.engine.scene.Camera;
@@ -40,6 +41,7 @@ public class Game implements IGame {
 		
 		debugPass = new DebugPass();
 		
+		engine.getRenderer().getPipeline().addPass(new ShadowMappingPass());
 		engine.getRenderer().getPipeline().addPass(new GeometryPass());
 		engine.getRenderer().getPipeline().addPass(new LightingPass());
 		engine.getRenderer().getPipeline().addPass(new SkyboxPass());
@@ -53,18 +55,19 @@ public class Game implements IGame {
 		
 		Model damagedHelmet = engine.getAssetManager().loadModel("/models/DamagedHelmet/DamagedHelmet.gltf", "/models/DamagedHelmet/textures");
 		Model cube = engine.getAssetManager().loadModel("/models/Cube/cube.gltf", "");
+		engine.getAssetManager().getMaterialManager().getMaterial(cube.getModelParts().get(0).getMaterialId()).setRoughness(0.3f);
+		engine.getAssetManager().getMaterialManager().getMaterial(cube.getModelParts().get(0).getMaterialId()).setMetallic(0);
 		
 		scene = new Scene();
-		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.45f, -1f, 0), new Vector3f(15)));
+		scene.setDirectionalLight(new DirectionalLight(new Vector3f(-0.75f, -1f, -0.45f), new Vector3f(15)));
 		scene.setEnvironment(engine.getAssetManager().loadEnvironment("/hdr/kloppenheim_06_puresky_4k.hdr"));
 		
 		scene.addEntity(new Entity(damagedHelmet, new Vector3f(0, 5, 0)));
 		
-		for (int x = 0; x < 300; x++) {
-			for (int z = 0; z < 300; z++) {
-				scene.addEntity(new Entity(cube, new Vector3f(x * 2.25f, 0, z * 2.25f)));
-			}
-		}
+		scene.addEntity(new Entity(cube, new Vector3f(), new Vector3f(), new Vector3f(10, 0.1f, 10)));
+		scene.addEntity(new Entity(cube, new Vector3f(4, 1.1001f, -3)));
+		scene.addEntity(new Entity(cube, new Vector3f(-6, 1.1001f, 2)));
+		scene.addEntity(new Entity(cube, new Vector3f(-1, 1.1001f, 5)));
 		
 		camera = new Camera(new Vector3f(-2, 7, -2), new Vector3f(25, 90 + 45, 0));
 		cameraController = new CameraController(engine.getKeyHandler(), engine.getMouseHandler(), camera);
@@ -124,6 +127,11 @@ public class Game implements IGame {
 	@Override
 	public void render() {
 		engine.getRenderer().render(scene, camera);
+	}
+	
+	@Override
+	public void cleanUp() {
+		scene.cleanUp();
 	}
 	
 }

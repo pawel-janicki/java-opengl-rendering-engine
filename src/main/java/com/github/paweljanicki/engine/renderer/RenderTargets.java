@@ -33,8 +33,15 @@ public class RenderTargets {
 		return fbo;
 	}
 	
+	public boolean contains(String name) {
+		return frameBuffers.containsKey(name);
+	}
+	
 	public void onResize(int width, int height) {
 		for (FrameBuffer fbo : frameBuffers.values()) {
+			if (!fbo.isResizable())
+				continue;
+			
 			fbo.resize(width, height);
 		}
 	}

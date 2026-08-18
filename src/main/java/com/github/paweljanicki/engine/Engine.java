@@ -72,6 +72,7 @@ public class Engine {
 	}
 	
 	private void cleanUp() {
+		game.cleanUp();
 		renderer.cleanUp();
 		assetManager.cleanUp();
 		window.cleanUp();

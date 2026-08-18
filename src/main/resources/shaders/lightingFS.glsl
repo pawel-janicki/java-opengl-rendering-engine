@@ -14,8 +14,11 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
+uniform sampler2D shadowMap;
+
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
+uniform mat4 lightSpaceMatrix;
 
 uniform vec3 cameraPosition;
 uniform mat4 inverseProjectionMatrix;
@@ -86,6 +89,31 @@ vec3 decodeNormal(vec2 p) {
 	return normalize(normal);
 }
 
+float calculateShadow(vec4 lightSpacePosition, vec3 normal) {
+	vec3 projCoords = lightSpacePosition.xyz / lightSpacePosition.w;
+	projCoords = projCoords * 0.5 + 0.5;
+	
+	if (projCoords.z > 1.0)
+		return 0.0;
+	
+	float currentDepth = projCoords.z;
+	
+	float bias = max(0.003 * (1.0 - max(dot(normal, lightDirection), 0.0)), 0.0003);
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	
+	for (int x = -2; x <= 2; x++) {
+		for (int y = -2; y <= 2; y++) {
+			float closestDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;
+		}
+	}
+	
+	shadow /= 25.0;
+	
+	return shadow;
+}
+
 void main() {
 	float depth = texture(gDepth, passTextureCoords).r;
 	if (depth >= 1.0) {
@@ -151,5 +179,9 @@ void main() {
 	// Emissive Lighting
 	vec3 emissive = texture(gEmissive, passTextureCoords).rgb;
 	
-	outColor = vec4(ambient + Lo + emissive, 1.0);
+	// Shadow
+	vec4 lightSpacePosition = lightSpaceMatrix * vec4(worldPosition, 1.0);
+	float shadow = calculateShadow(lightSpacePosition, N);
+	
+	outColor = vec4(ambient + (1.0 - shadow) * Lo + emissive, 1.0);
 }

@@ -5,5 +5,6 @@ public interface IGame {
 	public void init(Engine engine);
 	public void update(float deltaTime);
 	public void render();
+	public void cleanUp();
 	
 }

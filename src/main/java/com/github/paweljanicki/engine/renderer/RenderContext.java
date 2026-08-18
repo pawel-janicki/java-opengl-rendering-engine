@@ -1,5 +1,7 @@
 package com.github.paweljanicki.engine.renderer;
 
+import org.joml.Matrix4f;
+
 import com.github.paweljanicki.engine.scene.Camera;
 import com.github.paweljanicki.engine.scene.Scene;
 
@@ -10,6 +12,8 @@ public class RenderContext {
 	
 	private Scene scene;
 	private Camera camera;
+	
+	private Matrix4f lightSpaceMatrix = new Matrix4f();
 	
 	public int getWidth() {
 		return width;
@@ -41,6 +45,14 @@ public class RenderContext {
 	
 	public void setCamera(Camera camera) {
 		this.camera = camera;
+	}
+	
+	public Matrix4f getLightSpaceMatrix() {
+		return lightSpaceMatrix;
+	}
+	
+	public void setLightSpaceMatrix(Matrix4f lightSpaceMatrix) {
+		this.lightSpaceMatrix = lightSpaceMatrix;
 	}
 	
 }

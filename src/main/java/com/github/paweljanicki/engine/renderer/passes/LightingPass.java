@@ -46,6 +46,7 @@ public class LightingPass implements IRenderPass {
 		shader.setInt("irradianceMap", 5);
 		shader.setInt("prefilterMap", 6);
 		shader.setInt("brdfLUT", 7);
+		shader.setInt("shadowMap", 8);
 		shader.unbind();
 		
 		BrdfLutGenerator brdfLutGenerator = new BrdfLutGenerator(assetManager);
@@ -100,6 +101,15 @@ public class LightingPass implements IRenderPass {
 		
 		GL13.glActiveTexture(GL13.GL_TEXTURE7);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, brdfLut.getId());
+		
+		if (targets.contains("shadows")) {
+			FrameBuffer shadowsFbo = targets.get("shadows");
+			
+			shader.setMatrix4f("lightSpaceMatrix", context.getLightSpaceMatrix());
+			
+			GL13.glActiveTexture(GL13.GL_TEXTURE8);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowsFbo.getDepthTexture().getId());
+		}
 		
 		helpers.getQuadRenderer().render();
 		

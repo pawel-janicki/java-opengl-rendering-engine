@@ -45,7 +45,7 @@ public class Entity {
 	private void markDirty() {
 		transformationDirty = true;
 		if (scene != null)
-			scene.addDirtyEntity(this);
+			scene.getGpuScene().addDirtyEntity(this);
 	}
 	
 	public void translate(Vector3f vector) {

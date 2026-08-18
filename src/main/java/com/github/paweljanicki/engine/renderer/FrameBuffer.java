@@ -17,6 +17,8 @@ public class FrameBuffer {
 	private int width;
 	private int height;
 	
+	private boolean resizable;
+	
 	private List<TextureParameters> colorAttachmentsParameters = new ArrayList<>();
 	private List<Texture> colorTextures = new ArrayList<>();
 	
@@ -24,8 +26,13 @@ public class FrameBuffer {
 	private Texture depthTexture;
 	
 	public FrameBuffer(int width, int height) {
+		this(width, height, true);
+	}
+	
+	public FrameBuffer(int width, int height, boolean resizable) {
 		this.width = width;
 		this.height = height;
+		this.resizable = resizable;
 		this.id = GL30.glGenFramebuffers();
 	}
 	
@@ -135,6 +142,14 @@ public class FrameBuffer {
 	
 	public int getHeight() {
 		return height;
+	}
+	
+	public boolean isResizable() {
+		return resizable;
+	}
+	
+	public void setResizable(boolean resizable) {
+		this.resizable = resizable;
 	}
 	
 	public Texture getColorTexture(int index) {

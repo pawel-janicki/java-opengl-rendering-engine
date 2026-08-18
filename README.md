@@ -10,6 +10,7 @@ This is a real-time rendering engine made in Java using LWJGL. I created this pr
 - HDR rendering with ACES tonemapping
 - Normal mapping with octahedral encoding
 - Skybox rendering
+- Basic shadow mapping
 - Fast Approximate Anti Aliasing (FXAA)
 
 ## Screenshots

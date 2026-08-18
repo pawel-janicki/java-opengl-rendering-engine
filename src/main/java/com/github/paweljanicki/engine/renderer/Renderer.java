@@ -31,6 +31,8 @@ public class Renderer {
 		context.setScene(scene);
 		context.setCamera(camera);
 		
+		scene.getGpuScene().updateBuffers();
+		
 		pipeline.render(context, helpers);
 	}
 	
