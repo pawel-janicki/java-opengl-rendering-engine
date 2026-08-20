@@ -42,10 +42,11 @@ public class ShadowMappingPass implements IRenderPass {
 		this.meshManager = assetManager.getMeshManager();
 		
 		shadowsFbo = new FrameBuffer(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, false);
-		shadowsFbo.addDepthAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_DEPTH_COMPONENT, GL14.GL_DEPTH_COMPONENT24, GL11.GL_NEAREST, GL11.GL_NEAREST, GL13.GL_CLAMP_TO_BORDER, GL13.GL_CLAMP_TO_BORDER, false, false));
+		shadowsFbo.addDepthAttachment(new TextureParameters(GL11.GL_FLOAT, GL11.GL_DEPTH_COMPONENT, GL14.GL_DEPTH_COMPONENT24, GL11.GL_LINEAR, GL11.GL_LINEAR, GL13.GL_CLAMP_TO_BORDER, GL13.GL_CLAMP_TO_BORDER, false, false));
 		shadowsFbo.checkComplete();
 		
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowsFbo.getDepthTexture().getId());
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_COMPARE_MODE, GL14.GL_COMPARE_R_TO_TEXTURE);
 		GL11.glTexParameterfv(GL11.GL_TEXTURE_2D, GL13.GL_TEXTURE_BORDER_COLOR, new float[] { 1, 1, 1, 1 });
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 		

@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL30;
 import com.github.paweljanicki.engine.assets.AssetManager;
 import com.github.paweljanicki.engine.assets.shaders.Shader;
 import com.github.paweljanicki.engine.assets.textures.Texture;
+import com.github.paweljanicki.engine.assets.textures.TextureLoader;
 import com.github.paweljanicki.engine.assets.textures.TextureParameters;
 import com.github.paweljanicki.engine.renderer.BrdfLutGenerator;
 import com.github.paweljanicki.engine.renderer.FrameBuffer;
@@ -24,6 +25,7 @@ public class LightingPass implements IRenderPass {
 	private Shader shader;
 	
 	private Texture brdfLut;
+	private Texture blueNoise;
 	
 	@Override
 	public void init(AssetManager assetManager, RenderTargets targets, int width, int height) {
@@ -47,11 +49,14 @@ public class LightingPass implements IRenderPass {
 		shader.setInt("prefilterMap", 6);
 		shader.setInt("brdfLUT", 7);
 		shader.setInt("shadowMap", 8);
+		shader.setInt("blueNoise", 9);
 		shader.unbind();
 		
 		BrdfLutGenerator brdfLutGenerator = new BrdfLutGenerator(assetManager);
 		brdfLut = brdfLutGenerator.generate();
 		brdfLutGenerator.cleanUp();
+		
+		blueNoise = TextureLoader.load("/textures/blue_noise.png", TextureParameters.DEFAULT_RGB);
 	}
 
 	@Override
@@ -109,6 +114,9 @@ public class LightingPass implements IRenderPass {
 			
 			GL13.glActiveTexture(GL13.GL_TEXTURE8);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowsFbo.getDepthTexture().getId());
+			
+			GL13.glActiveTexture(GL13.GL_TEXTURE9);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, blueNoise.getId());
 		}
 		
 		helpers.getQuadRenderer().render();
@@ -124,6 +132,7 @@ public class LightingPass implements IRenderPass {
 	@Override
 	public void cleanUp() {
 		GL11.glDeleteTextures(brdfLut.getId());
+		GL11.glDeleteTextures(blueNoise.getId());
 	}
 	
 }

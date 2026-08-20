@@ -14,7 +14,8 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
-uniform sampler2D shadowMap;
+uniform sampler2DShadow shadowMap;
+uniform sampler2D blueNoise;
 
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -27,6 +28,25 @@ uniform mat4 inverseViewMatrix;
 const float PI = 3.14159265359;
 
 const float MAX_REFLECTION_LOD = 4.0;
+
+const vec2[] POISSON_DISK = vec2[] (
+	vec2(-0.94201624, -0.39906216),
+	vec2(0.94558609, -0.76890725),
+	vec2(-0.094184101, -0.92938870),
+	vec2(0.34495938, 0.29387760),
+	vec2(-0.91588581, 0.45771432),
+	vec2(-0.81544232, -0.87912464),
+	vec2(-0.38277543, 0.27676845),
+	vec2(0.97484398, 0.75648379),
+	vec2(0.44323325, -0.97511554),
+	vec2(0.53742981, -0.47373420),
+	vec2(-0.26496911, -0.41893023),
+	vec2(0.79197514, 0.19090188),
+	vec2(-0.24188840, 0.99706507),
+	vec2(-0.81409955, 0.91437590),
+	vec2(0.19984126, 0.78641367),
+	vec2(0.14383161, -0.14100790)
+);
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
 	float a = roughness * roughness;
@@ -96,22 +116,31 @@ float calculateShadow(vec4 lightSpacePosition, vec3 normal) {
 	if (projCoords.z > 1.0)
 		return 0.0;
 	
-	float currentDepth = projCoords.z;
-	
 	float bias = max(0.003 * (1.0 - max(dot(normal, lightDirection), 0.0)), 0.0003);
-	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	float lightFactor = 0.0;
 	
-	for (int x = -2; x <= 2; x++) {
-		for (int y = -2; y <= 2; y++) {
-			float closestDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;
-		}
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	float filterRadius = 2.0;
+	
+	vec2 noiseUV = gl_FragCoord.xy / textureSize(blueNoise, 0);
+	float noiseValue = texture(blueNoise, noiseUV).r;
+	
+	float angle = noiseValue * 2 * PI;
+	float c = cos(angle);
+	float s = sin(angle);
+	mat2 rotationMatrix = mat2(c, -s, s, c);
+	
+	float depthToCompare = projCoords.z - bias;
+	
+	for (int i = 0; i < 16; i++) {
+		vec2 offset = rotationMatrix * POISSON_DISK[i] * texelSize * filterRadius;
+		
+		lightFactor += texture(shadowMap, vec3(projCoords.xy + offset, depthToCompare));
 	}
 	
-	shadow /= 25.0;
+	lightFactor /= 16.0;
 	
-	return shadow;
+	return lightFactor;
 }
 
 void main() {
@@ -181,7 +210,7 @@ void main() {
 	
 	// Shadow
 	vec4 lightSpacePosition = lightSpaceMatrix * vec4(worldPosition, 1.0);
-	float shadow = calculateShadow(lightSpacePosition, N);
+	float lightFactor = calculateShadow(lightSpacePosition, N);
 	
-	outColor = vec4(ambient + (1.0 - shadow) * Lo + emissive, 1.0);
+	outColor = vec4(ambient + lightFactor * Lo + emissive, 1.0);
 }
