@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL30;
 
 import com.github.paweljanicki.engine.assets.textures.Texture;
@@ -24,6 +25,7 @@ public class FrameBuffer {
 	
 	private TextureParameters depthAttachmentParameters;
 	private Texture depthTexture;
+	private int depthTextureLayers = 1;
 	
 	public FrameBuffer(int width, int height) {
 		this(width, height, true);
@@ -39,7 +41,7 @@ public class FrameBuffer {
 	public void addColorAttachment(TextureParameters attachmentParameters) {
 		colorAttachmentsParameters.add(attachmentParameters);
 		
-		Texture texture = generateAttachmentTexture(attachmentParameters);
+		Texture texture = generateAttachmentTexture(GL11.GL_TEXTURE_2D, attachmentParameters);
 		
 		bind();
 		int attachmentIndex = GL30.GL_COLOR_ATTACHMENT0 + colorTextures.size();
@@ -52,27 +54,50 @@ public class FrameBuffer {
 	public void addDepthAttachment(TextureParameters attachmentParameters) {
 		depthAttachmentParameters = attachmentParameters;
 		
-		Texture texture = generateAttachmentTexture(attachmentParameters);
-		depthTexture = texture;
+		depthTexture = generateAttachmentTexture(GL11.GL_TEXTURE_2D, attachmentParameters);
 		
 		bind();
 		int attachmentIndex = GL30.GL_DEPTH_ATTACHMENT;
-		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachmentIndex, GL11.GL_TEXTURE_2D, texture.getId(), 0);
+		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachmentIndex, GL11.GL_TEXTURE_2D, depthTexture.getId(), 0);
 		unbind();
 	}
 	
-	private Texture generateAttachmentTexture(TextureParameters attachmentParameters) {
+	public void addDepthArrayAttachment(int layers, TextureParameters attachmentParameters) {
+		depthAttachmentParameters = attachmentParameters;
+		depthTextureLayers = layers;
+		
 		int id = GL11.glGenTextures();
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, attachmentParameters.internalFormat, width, height, 0, attachmentParameters.format, attachmentParameters.type, (ByteBuffer) null);
+		GL11.glBindTexture(GL30.GL_TEXTURE_2D_ARRAY, id);
+		GL12.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, attachmentParameters.internalFormat, width, height, layers, 0, attachmentParameters.format, attachmentParameters.type, (ByteBuffer) null);
 		
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, attachmentParameters.minFilter);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, attachmentParameters.magFilter);
+		GL11.glTexParameteri(GL30.GL_TEXTURE_2D_ARRAY, GL11.GL_TEXTURE_MIN_FILTER, attachmentParameters.minFilter);
+		GL11.glTexParameteri(GL30.GL_TEXTURE_2D_ARRAY, GL11.GL_TEXTURE_MAG_FILTER, attachmentParameters.magFilter);
 		
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, attachmentParameters.wrapS);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, attachmentParameters.wrapT);
+		GL11.glTexParameteri(GL30.GL_TEXTURE_2D_ARRAY, GL11.GL_TEXTURE_WRAP_S, attachmentParameters.wrapS);
+		GL11.glTexParameteri(GL30.GL_TEXTURE_2D_ARRAY, GL11.GL_TEXTURE_WRAP_T, attachmentParameters.wrapT);
 		
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+		GL11.glBindTexture(GL30.GL_TEXTURE_2D_ARRAY, 0);
+		
+		depthTexture = new Texture(id);
+		
+		bind();
+		int attachmentIndex = GL30.GL_DEPTH_ATTACHMENT;
+		GL30.glFramebufferTextureLayer(GL30.GL_FRAMEBUFFER, attachmentIndex, id, 0, 0);
+		unbind();
+	}
+	
+	private Texture generateAttachmentTexture(int target, TextureParameters attachmentParameters) {
+		int id = GL11.glGenTextures();
+		GL11.glBindTexture(target, id);
+		GL11.glTexImage2D(target, 0, attachmentParameters.internalFormat, width, height, 0, attachmentParameters.format, attachmentParameters.type, (ByteBuffer) null);
+		
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_MIN_FILTER, attachmentParameters.minFilter);
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_MAG_FILTER, attachmentParameters.magFilter);
+		
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_S, attachmentParameters.wrapS);
+		GL11.glTexParameteri(target, GL11.GL_TEXTURE_WRAP_T, attachmentParameters.wrapT);
+		
+		GL11.glBindTexture(target, 0);
 		
 		return new Texture(id);
 	}
@@ -105,6 +130,9 @@ public class FrameBuffer {
 	}
 	
 	public void resize(int width, int height) {
+		if (!resizable)
+			return;
+		
 		this.width = width;
 		this.height = height;
 		
@@ -115,9 +143,15 @@ public class FrameBuffer {
 		}
 		
 		if (depthTexture != null) {
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, depthTexture.getId());
-			GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, depthAttachmentParameters.internalFormat, width, height, 0, depthAttachmentParameters.format, depthAttachmentParameters.type, (ByteBuffer) null);
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+			if (depthTextureLayers == 1) {
+				GL11.glBindTexture(GL11.GL_TEXTURE_2D, depthTexture.getId());
+				GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, depthAttachmentParameters.internalFormat, width, height, 0, depthAttachmentParameters.format, depthAttachmentParameters.type, (ByteBuffer) null);
+				GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+			} else {
+				GL11.glBindTexture(GL30.GL_TEXTURE_2D_ARRAY, depthTexture.getId());
+				GL12.glTexImage3D(GL30.GL_TEXTURE_2D_ARRAY, 0, depthAttachmentParameters.internalFormat, width, height, depthTextureLayers, 0, depthAttachmentParameters.format, depthAttachmentParameters.type, (ByteBuffer) null);
+				GL11.glBindTexture(GL30.GL_TEXTURE_2D_ARRAY, 0);
+			}
 		}
 	}
 	

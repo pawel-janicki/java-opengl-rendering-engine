@@ -14,16 +14,21 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
-uniform sampler2DShadow shadowMap;
+uniform sampler2DArrayShadow shadowMap;
 uniform sampler2D blueNoise;
+
+const int SHADOW_CASCADES = 4;
+uniform mat4[SHADOW_CASCADES] lightSpaceMatrices;
+uniform float[SHADOW_CASCADES] shadowDistances;
+uniform float shadowBlendSize;
 
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
-uniform mat4 lightSpaceMatrix;
 
 uniform vec3 cameraPosition;
 uniform mat4 inverseProjectionMatrix;
 uniform mat4 inverseViewMatrix;
+uniform mat4 viewMatrix;
 
 const float PI = 3.14159265359;
 
@@ -109,18 +114,17 @@ vec3 decodeNormal(vec2 p) {
 	return normalize(normal);
 }
 
-float calculateShadow(vec4 lightSpacePosition, vec3 normal) {
+float calculateShadow(vec4 lightSpacePosition, vec3 normal, int cascade) {
 	vec3 projCoords = lightSpacePosition.xyz / lightSpacePosition.w;
 	projCoords = projCoords * 0.5 + 0.5;
 	
 	if (projCoords.z > 1.0)
 		return 0.0;
 	
-	float bias = max(0.003 * (1.0 - max(dot(normal, lightDirection), 0.0)), 0.0003);
-	float lightFactor = 0.0;
-	
-	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0).xy;
 	float filterRadius = 2.0;
+	
+	float bias = max(0.03 * (1.0 - max(dot(normal, -lightDirection), 0.0)), 0.003);
 	
 	vec2 noiseUV = gl_FragCoord.xy / textureSize(blueNoise, 0);
 	float noiseValue = texture(blueNoise, noiseUV).r;
@@ -132,10 +136,12 @@ float calculateShadow(vec4 lightSpacePosition, vec3 normal) {
 	
 	float depthToCompare = projCoords.z - bias;
 	
+	float lightFactor = 0.0;
+	
 	for (int i = 0; i < 16; i++) {
 		vec2 offset = rotationMatrix * POISSON_DISK[i] * texelSize * filterRadius;
 		
-		lightFactor += texture(shadowMap, vec3(projCoords.xy + offset, depthToCompare));
+		lightFactor += texture(shadowMap, vec4(projCoords.xy + offset, cascade, depthToCompare));
 	}
 	
 	lightFactor /= 16.0;
@@ -209,8 +215,46 @@ void main() {
 	vec3 emissive = texture(gEmissive, passTextureCoords).rgb;
 	
 	// Shadow
-	vec4 lightSpacePosition = lightSpaceMatrix * vec4(worldPosition, 1.0);
-	float lightFactor = calculateShadow(lightSpacePosition, N);
+	vec3 viewPosition = (viewMatrix * vec4(worldPosition, 1.0)).xyz;
+	float viewDepth = -viewPosition.z;
+	
+	int cascade = 0;
+	for (int i = 0; i < SHADOW_CASCADES - 1; i++) {
+		if (viewDepth >= shadowDistances[i]) {
+			cascade++;
+		} else {
+			break;
+		}
+	}
+	
+	vec4 lightSpacePosition = lightSpaceMatrices[cascade] * vec4(worldPosition, 1.0);
+	float lightFactor = calculateShadow(lightSpacePosition, N, cascade);
+	
+	if (cascade > 0) {
+		int previousCascade = cascade - 1;
+		float boundary = shadowDistances[previousCascade];
+		
+		if (viewDepth < boundary + shadowBlendSize) {
+			vec4 previousCascadeLightSpacePosition = lightSpaceMatrices[previousCascade] * vec4(worldPosition, 1.0);
+			float previousCascadeLightFactor = calculateShadow(previousCascadeLightSpacePosition, N, previousCascade);
+			
+			float blendFactor = smoothstep(boundary - shadowBlendSize, boundary + shadowBlendSize, viewDepth);
+			lightFactor = mix(previousCascadeLightFactor, lightFactor, blendFactor);
+		}
+	}
+	
+	if (cascade < SHADOW_CASCADES - 1) {
+		int nextCascade = cascade + 1;
+		float boundary = shadowDistances[cascade];
+		
+		if (viewDepth > boundary - shadowBlendSize) {
+			vec4 nextCascadeLightSpacePosition = lightSpaceMatrices[nextCascade] * vec4(worldPosition, 1.0);
+			float nextCascadeLightFactor = calculateShadow(nextCascadeLightSpacePosition, N, nextCascade);
+			
+			float blendFactor = smoothstep(boundary - shadowBlendSize, boundary + shadowBlendSize, viewDepth);
+			lightFactor = mix(lightFactor, nextCascadeLightFactor, blendFactor);
+		}
+	}
 	
 	outColor = vec4(ambient + lightFactor * Lo + emissive, 1.0);
 }

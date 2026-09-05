@@ -77,6 +77,7 @@ public class LightingPass implements IRenderPass {
 		shader.setVector3f("cameraPosition", camera.getPosition());
 		shader.setMatrix4f("inverseProjectionMatrix", camera.getInverseProjectionMatrix(context.getWidth(), context.getHeight()));
 		shader.setMatrix4f("inverseViewMatrix", camera.getInverseViewMatrix());
+		shader.setMatrix4f("viewMatrix", camera.getViewMatrix());
 		
 		if (scene.getDirectionalLight() != null) {
 			shader.setVector3f("lightDirection", scene.getDirectionalLight().getDirection());
@@ -110,10 +111,14 @@ public class LightingPass implements IRenderPass {
 		if (targets.contains("shadows")) {
 			FrameBuffer shadowsFbo = targets.get("shadows");
 			
-			shader.setMatrix4f("lightSpaceMatrix", context.getLightSpaceMatrix());
+			for (int i = 0; i < ShadowMappingPass.SHADOW_CASCADES; i++) {
+				shader.setMatrix4f("lightSpaceMatrices[" + i + "]", context.getLightSpaceMatrices()[i]);
+				shader.setFloat("shadowDistances[" + i + "]", ShadowMappingPass.SHADOW_DISTANCES[i]);
+				shader.setFloat("shadowBlendSize", ShadowMappingPass.SHADOW_BLEND_SIZE);
+			}
 			
 			GL13.glActiveTexture(GL13.GL_TEXTURE8);
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, shadowsFbo.getDepthTexture().getId());
+			GL11.glBindTexture(GL30.GL_TEXTURE_2D_ARRAY, shadowsFbo.getDepthTexture().getId());
 			
 			GL13.glActiveTexture(GL13.GL_TEXTURE9);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, blueNoise.getId());

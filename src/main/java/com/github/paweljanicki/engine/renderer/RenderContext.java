@@ -13,7 +13,7 @@ public class RenderContext {
 	private Scene scene;
 	private Camera camera;
 	
-	private Matrix4f lightSpaceMatrix = new Matrix4f();
+	private Matrix4f[] lightSpaceMatrices;
 	
 	public int getWidth() {
 		return width;
@@ -47,12 +47,12 @@ public class RenderContext {
 		this.camera = camera;
 	}
 	
-	public Matrix4f getLightSpaceMatrix() {
-		return lightSpaceMatrix;
+	public Matrix4f[] getLightSpaceMatrices() {
+		return lightSpaceMatrices;
 	}
 	
-	public void setLightSpaceMatrix(Matrix4f lightSpaceMatrix) {
-		this.lightSpaceMatrix = lightSpaceMatrix;
+	public void setLightSpaceMatrices(Matrix4f[] lightSpaceMatrices) {
+		this.lightSpaceMatrices = lightSpaceMatrices;
 	}
 	
 }
